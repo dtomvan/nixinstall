@@ -41,3 +41,5 @@ requirements.txt
 /cmd_output.txt
 /.envrc
 /.direnv
+/result*
+/repl-result*

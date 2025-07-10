@@ -40,3 +40,5 @@ requirements.txt
 /actions-runner
 /cmd_output.txt
 uv.lock
+/.envrc
+/.direnv

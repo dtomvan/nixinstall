@@ -1,39 +1,19 @@
 # This workflow will build Python packages on every commit.
 
-name: Build archinstall
+name: Build nixinstall
 
 on: [ push, pull_request ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    container:
-      image: archlinux/archlinux:latest
-      options: --privileged
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Prepare arch
-        run: |
-          pacman-key --init
-          pacman --noconfirm -Sy archlinux-keyring
-          pacman --noconfirm -Syyu
-          pacman --noconfirm -Sy python-uv python-setuptools python-pip
-          pacman --noconfirm -Sy python-pyparted python-pydantic
-      - name: Remove existing archinstall (if any)
-        run: 
-          uv pip uninstall archinstall --break-system-packages --system
-      - name: Build archinstall
-        run: uv build --no-build-isolation --wheel
-      - name: Install archinstall
-        run: |
-          uv pip install dist/*.whl --break-system-packages --system --no-build --no-deps
-      - name: Run archinstall
-        run: |
-          python -V
-          archinstall --script guided -v
-          archinstall --script only_hd -v
-          archinstall --script minimal -v
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
         with:
-          name: archinstall
-          path: dist/*
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: nix build -L
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nixinstall
+          path: result/*

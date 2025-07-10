@@ -32,8 +32,6 @@ Source = "https://github.com/archlinux/archinstall"
 log = ["systemd_python==235"]
 dev = [
     "mypy==1.16.1",
-    "flake8==7.3.0",
-    "pre-commit==4.2.0",
     "ruff==0.12.2",
     "pylint==3.3.7",
     "pylint-pydantic==0.3.5",
@@ -178,34 +176,18 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = [
-    "ASYNC",  # flake8-async
-    "B",      # flake8-bugbear
     "C90",    # mccabe
-    "COM",    # flake8-commas
-    "DTZ",    # flake8-datetimez
     "E",      # pycodestyle errors
-    "EXE",    # flake8-executable
     "F",      # Pyflakes
-    "FA",     # flake8-future-annotations
     "FLY",    # flynt
-    "G",      # flake8-logging-format
     "I",      # isort
-    "ICN",    # flake8-import-conventions
-    "ISC",    # flake8-implicit-str-concat
-    "LOG",    # flake8-logging
     "PGH",    # pygrep-hooks
-    "PIE",    # flake8-pie
     "PLC",    # Pylint conventions
     "PLE",    # Pylint errors
     "PLW",    # Pylint warnings
-    "PYI",    # flake8-pyi
-    "RSE",    # flake8-raise
     "RUF",    # Ruff-specific rules
-    "SLOT",   # flake8-slot
-    "T10",    # flake8-debugger
     "UP",     # pyupgrade
     "W",      # pycodestyle warnings
-    "YTT",    # flake8-2020
 ]
 
 ignore = [

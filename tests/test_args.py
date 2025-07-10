@@ -3,25 +3,25 @@ from pathlib import Path
 
 from pytest import MonkeyPatch
 
-from archinstall.default_profiles.profile import GreeterType
-from archinstall.lib.args import ArchConfig, ArchConfigHandler, Arguments
-from archinstall.lib.hardware import GfxDriver
-from archinstall.lib.models.application import ApplicationConfiguration, Audio, AudioConfiguration, BluetoothConfiguration
-from archinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
-from archinstall.lib.models.bootloader import Bootloader
-from archinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayoutType
-from archinstall.lib.models.locale import LocaleConfiguration
-from archinstall.lib.models.mirrors import CustomRepository, CustomServer, MirrorConfiguration, MirrorRegion, SignCheck, SignOption
-from archinstall.lib.models.network_configuration import NetworkConfiguration, Nic, NicType
-from archinstall.lib.models.packages import Repository
-from archinstall.lib.models.profile_model import ProfileConfiguration
-from archinstall.lib.models.users import Password, User
-from archinstall.lib.profile.profiles_handler import profile_handler
-from archinstall.lib.translationhandler import translation_handler
+from nixinstall.default_profiles.profile import GreeterType
+from nixinstall.lib.args import ArchConfig, ArchConfigHandler, Arguments
+from nixinstall.lib.hardware import GfxDriver
+from nixinstall.lib.models.application import ApplicationConfiguration, Audio, AudioConfiguration, BluetoothConfiguration
+from nixinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
+from nixinstall.lib.models.bootloader import Bootloader
+from nixinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayoutType
+from nixinstall.lib.models.locale import LocaleConfiguration
+from nixinstall.lib.models.mirrors import CustomRepository, CustomServer, MirrorConfiguration, MirrorRegion, SignCheck, SignOption
+from nixinstall.lib.models.network_configuration import NetworkConfiguration, Nic, NicType
+from nixinstall.lib.models.packages import Repository
+from nixinstall.lib.models.profile_model import ProfileConfiguration
+from nixinstall.lib.models.users import Password, User
+from nixinstall.lib.profile.profiles_handler import profile_handler
+from nixinstall.lib.translationhandler import translation_handler
 
 
 def test_default_args(monkeypatch: MonkeyPatch) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall'])
+	monkeypatch.setattr('sys.argv', ['nixinstall'])
 	handler = ArchConfigHandler()
 	args = handler.args
 	assert args == Arguments(
@@ -53,7 +53,7 @@ def test_correct_parsing_args(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--config',
 			str(config_fixture),
 			'--config-url',
@@ -108,7 +108,7 @@ def test_config_file_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--config',
 			str(config_fixture),
 			'--creds',
@@ -119,7 +119,7 @@ def test_config_file_parsing(
 	handler = ArchConfigHandler()
 	arch_config = handler.config
 
-	# the version is retrieved dynamically from an installed archinstall package
+	# the version is retrieved dynamically from an installed nixinstall package
 	# as there is no version present in the test environment we'll set it manually
 	arch_config.version = '3.0.2'
 
@@ -235,7 +235,7 @@ def test_deprecated_mirror_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--config',
 			str(deprecated_mirror_config),
 		],
@@ -271,7 +271,7 @@ def test_deprecated_creds_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--creds',
 			str(deprecated_creds_config),
 		],
@@ -299,7 +299,7 @@ def test_deprecated_audio_config_parsing(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--config',
 			str(deprecated_audio_config),
 		],
@@ -320,7 +320,7 @@ def test_encrypted_creds_with_arg(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--creds',
 			str(encrypted_creds_fixture),
 			'--creds-decryption-key',
@@ -350,7 +350,7 @@ def test_encrypted_creds_with_env_var(
 	monkeypatch.setattr(
 		'sys.argv',
 		[
-			'archinstall',
+			'nixinstall',
 			'--creds',
 			str(encrypted_creds_fixture),
 		],

@@ -3,16 +3,17 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "archinstall"
+name = "nixinstall"
 version = "3.0.8"
-description = "Arch Linux installer - guided, templates etc."
+description = "NixOS installer - guided only, fork of archinstall"
 authors = [
     {name = "Anton Hvornum", email = "anton@hvornum.se"},
+    {name = "Tom van Dijk", email = "18gatenmaker6@gmail.com"},
 ]
 license = "GPL-3.0-only"
 readme = "README.md"
 requires-python = ">=3.12"
-keywords = ["linux", "arch", "archinstall", "installer"]
+keywords = ["linux", "nixos", "installer"]
 classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: POSIX :: Linux",
@@ -24,9 +25,8 @@ dependencies = [
 ]
 
 [project.urls]
-Home = "https://archlinux.org"
-Documentation = "https://archinstall.readthedocs.io/"
-Source = "https://github.com/archlinux/archinstall"
+Home = "https://nixos.org"
+Source = "https://github.com/dtomvan/nixinstall"
 
 [project.optional-dependencies]
 log = ["systemd_python==235"]
@@ -40,7 +40,7 @@ dev = [
 doc = ["sphinx"]
 
 [project.scripts]
-archinstall = "archinstall:run_as_a_module"
+nixinstall = "nixinstall:run_as_a_module"
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "USAGE.rst"]}
@@ -50,7 +50,7 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 # We could specify locales/languages.json etc instead, but catchall works too.
-"archinstall" = [
+"nixinstall" = [
     "**/*.py",
     "**/*.mo",
     "**/*.po",
@@ -59,7 +59,7 @@ include-package-data = true
 ]
 
 [tool.setuptools.package-dir]
-archinstall = "archinstall"
+nixinstall = "nixinstall"
 
 [tool.mypy]
 python_version = "3.12"
@@ -86,33 +86,33 @@ strict = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.default_profiles.*"
+module = "nixinstall.default_profiles.*"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.examples.*"
+module = "nixinstall.examples.*"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.*"
+module = "nixinstall.lib.*"
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.disk.*"
+module = "nixinstall.lib.disk.*"
 # 'Any' imports are allowed because pyparted doesn't have type hints
 disallow_any_unimported = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.models.*"
+module = "nixinstall.lib.models.*"
 # 'Any' imports are allowed because pyparted doesn't have type hints
 disallow_any_unimported = false
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.packages"
+module = "nixinstall.lib.packages"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = "archinstall.lib.utils"
+module = "nixinstall.lib.utils"
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
@@ -122,7 +122,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.bandit]
-targets = ["archinstall"]
+targets = ["nixinstall"]
 exclude = ["/tests"]
 
 [tool.pytest.ini_options]

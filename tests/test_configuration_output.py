@@ -3,20 +3,20 @@ from pathlib import Path
 
 from pytest import MonkeyPatch
 
-from archinstall.lib.args import ArchConfigHandler
-from archinstall.lib.configuration import ConfigurationOutput
+from nixinstall.lib.args import ArchConfigHandler
+from nixinstall.lib.configuration import ConfigurationOutput
 
 
 def test_user_config_roundtrip(
 	monkeypatch: MonkeyPatch,
 	config_fixture: Path,
 ) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall', '--config', str(config_fixture)])
+	monkeypatch.setattr('sys.argv', ['nixinstall', '--config', str(config_fixture)])
 
 	handler = ArchConfigHandler()
 	arch_config = handler.config
 
-	# the version is retrieved dynamically from an installed archinstall package
+	# the version is retrieved dynamically from an installed nixinstall package
 	# as there is no version present in the test environment we'll set it manually
 	arch_config.version = '3.0.2'
 
@@ -50,7 +50,7 @@ def test_creds_roundtrip(
 	monkeypatch: MonkeyPatch,
 	creds_fixture: Path,
 ) -> None:
-	monkeypatch.setattr('sys.argv', ['archinstall', '--creds', str(creds_fixture)])
+	monkeypatch.setattr('sys.argv', ['nixinstall', '--creds', str(creds_fixture)])
 
 	handler = ArchConfigHandler()
 	arch_config = handler.config

@@ -33,8 +33,6 @@ log = ["systemd_python==235"]
 dev = [
     "mypy==1.16.1",
     "ruff==0.12.2",
-    "pylint==3.3.7",
-    "pylint-pydantic==0.3.5",
     "pytest==8.4.1",
 ]
 doc = ["sphinx"]
@@ -130,41 +128,6 @@ pythonpath = ["."]
 addopts = "-s"
 testpaths = ["tests"]
 
-[tool.pylint.main]
-ignore-paths = [
-    "^build/",
-    "^docs/",
-]
-load-plugins = ["pylint_pydantic"]
-persistent = false
-py-version = "3.12"
-recursive = true
-
-[tool.pylint.format]
-indent-string = '\t'
-max-line-length = 160
-
-[tool.pylint."messages control"]
-disable = [
-    "C",
-    "R",
-    "attribute-defined-outside-init",
-    "broad-exception-caught",
-    "cell-var-from-loop",
-    "dangerous-default-value",
-    "fixme",
-    "protected-access",
-    "raise-missing-from",
-    "unspecified-encoding",
-    "unused-argument",
-]
-
-[tool.pylint.refactoring]
-score = false
-
-[tool.pylint.variables]
-init-import = true
-
 [tool.ruff]
 target-version = "py312"
 line-length = 160
@@ -182,9 +145,6 @@ select = [
     "FLY",    # flynt
     "I",      # isort
     "PGH",    # pygrep-hooks
-    "PLC",    # Pylint conventions
-    "PLE",    # Pylint errors
-    "PLW",    # Pylint warnings
     "RUF",    # Ruff-specific rules
     "UP",     # pyupgrade
     "W",      # pycodestyle warnings

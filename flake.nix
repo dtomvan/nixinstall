@@ -152,9 +152,19 @@
           system = "x86_64-linux";
           modules = [
             (
-              { lib, modulesPath, ... }:
               {
-                imports = [ "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix" ];
+                lib,
+                pkgs,
+                modulesPath,
+                ...
+              }:
+              {
+                imports = [
+                  "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
+                  "${modulesPath}/installer/cd-dvd/channel.nix"
+                ];
+
+                environment.sessionVariables.NIX_PATH = lib.mkForce "nixpkgs=${pkgs.path}";
 
                 isoImage = {
                   edition = lib.mkForce "nixinstall";

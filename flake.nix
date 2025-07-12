@@ -51,6 +51,7 @@
 
           devInputs = with pkgs; [
             python
+            python.pkgs.ipython
 
             bandit
             mypy

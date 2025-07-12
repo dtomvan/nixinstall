@@ -43,7 +43,7 @@ def main() -> int:
 		arch_config_handler.print_help()
 		return 0
 
-	if os.getuid() != 0:
+	if os.getuid() != 0 and '--debug' not in sys.argv:
 		print('nixinstall requires root privileges to run. See --help for more.')
 		return 1
 

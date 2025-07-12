@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import NotRequired, TypedDict, override
 
-from nixinstall.lib.translationhandler import tr
-
 from ..crypt import crypt_yescrypt
 
 
@@ -18,13 +16,13 @@ class PasswordStrength(Enum):
 	def value(self) -> str:  # pylint: disable=invalid-overridden-method
 		match self:
 			case PasswordStrength.VERY_WEAK:
-				return tr('very weak')
+				return 'very weak'
 			case PasswordStrength.WEAK:
-				return tr('weak')
+				return 'weak'
 			case PasswordStrength.MODERATE:
-				return tr('moderate')
+				return 'moderate'
 			case PasswordStrength.STRONG:
-				return tr('strong')
+				return 'strong'
 
 	def color(self) -> str:
 		match self:

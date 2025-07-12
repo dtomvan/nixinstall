@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import override
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import EditMenu, SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -17,10 +16,10 @@ from ..utils.util import get_password
 class UserList(ListManager[User]):
 	def __init__(self, prompt: str, lusers: list[User]):
 		self._actions = [
-			tr('Add a user'),
-			tr('Change password'),
-			tr('Promote/Demote user'),
-			tr('Delete User'),
+			'Add a user',
+			'Change password',
+			'Promote/Demote user',
+			'Delete User',
 		]
 
 		super().__init__(
@@ -44,8 +43,8 @@ class UserList(ListManager[User]):
 				data = [d for d in data if d.username != new_user.username]
 				data += [new_user]
 		elif action == self._actions[1] and entry:  # change password
-			header = f'{tr("User")}: {entry.username}\n'
-			new_password = get_password(tr('Password'), header=header)
+			header = f'{"User"}: {entry.username}\n'
+			new_password = get_password('Password', header=header)
 
 			if new_password:
 				user = next(filter(lambda x: x == entry, data))
@@ -62,11 +61,11 @@ class UserList(ListManager[User]):
 		if username is not None:
 			if re.match(r'^[a-z_][a-z0-9_-]*\$?$', username) and len(username) <= 32:
 				return None
-		return tr('The username you entered is invalid')
+		return 'The username you entered is invalid'
 
 	def _add_user(self) -> User | None:
 		editResult = EditMenu(
-			tr('Username'),
+			'Username',
 			allow_skip=True,
 			validator=self._check_for_correct_username,
 		).input()
@@ -82,15 +81,15 @@ class UserList(ListManager[User]):
 		if not username:
 			return None
 
-		header = f'{tr("Username")}: {username}\n'
+		header = f'{"Username"}: {username}\n'
 
-		password = get_password(tr('Password'), header=header, allow_skip=True)
+		password = get_password('Password', header=header, allow_skip=True)
 
 		if not password:
 			return None
 
-		header += f'{tr("Password")}: {password.hidden()}\n\n'
-		header += str(tr('Should "{}" be a superuser (sudo)?\n')).format(username)
+		header += f'{"Password"}: {password.hidden()}\n\n'
+		header += f'Should "{username}" be a superuser (sudo)?\n'
 
 		group = MenuItemGroup.yes_no()
 		group.focus_item = MenuItem.yes()

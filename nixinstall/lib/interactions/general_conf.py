@@ -6,7 +6,6 @@ from typing import assert_never
 
 from nixinstall.lib.models.packages import Repository
 from nixinstall.lib.packages.packages import list_available_packages
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import EditMenu, SelectMenu, Tui
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -15,23 +14,20 @@ from nixinstall.tui.types import Alignment, FrameProperties, Orientation, Previe
 from ..locale.utils import list_timezones
 from ..models.packages import AvailablePackage, PackageGroup
 from ..output import warn
-from ..translationhandler import Language
 
 
 class PostInstallationAction(Enum):
-	EXIT = tr('Exit nixinstall')
-	REBOOT = tr('Reboot system')
-	CHROOT = tr('chroot into installation for post-installation configurations')
+	EXIT = 'Exit nixinstall'
+	REBOOT = 'Reboot system'
+	CHROOT = 'chroot into installation for post-installation configurations'
 
 
 def ask_ntp(preset: bool = True) -> bool:
-	header = tr('Would you like to use automatic time synchronization (NTP) with the default time servers?\n') + '\n'
-	header += (
-		tr(
-			'Hardware time and other post-configuration steps might be required in order for NTP to work.\nFor more information, please check the Arch wiki',
-		)
-		+ '\n'
-	)
+	header = '''\
+	Would you like to use automatic time synchronization (NTP) with the default time servers?
+	Hardware time and other post-configuration steps might be required in order for NTP to work.
+	For more information, please check the Arch wiki
+	'''
 
 	preset_val = MenuItem.yes() if preset else MenuItem.no()
 	group = MenuItemGroup.yes_no()
@@ -57,7 +53,7 @@ def ask_ntp(preset: bool = True) -> bool:
 
 def ask_hostname(preset: str | None = None) -> str | None:
 	result = EditMenu(
-		tr('Hostname'),
+		'Hostname',
 		alignment=Alignment.CENTER,
 		allow_skip=True,
 		default_text=preset,
@@ -88,7 +84,7 @@ def ask_for_a_timezone(preset: str | None = None) -> str | None:
 		group,
 		allow_reset=True,
 		allow_skip=True,
-		frame=FrameProperties.min(tr('Timezone')),
+		frame=FrameProperties.min('Timezone'),
 		alignment=Alignment.CENTER,
 	).run()
 
@@ -114,37 +110,6 @@ def select_language(preset: str | None = None) -> str | None:
 	return select_kb_layout(preset)
 
 
-def select_archinstall_language(languages: list[Language], preset: Language) -> Language:
-	# these are the displayed language names which can either be
-	# the english name of a language or, if present, the
-	# name of the language in its own language
-
-	items = [MenuItem(lang.display_name, lang) for lang in languages]
-	group = MenuItemGroup(items, sort_items=True)
-	group.set_focus_by_value(preset)
-
-	title = 'NOTE: If a language can not displayed properly, a proper font must be set manually in the console.\n'
-	title += 'All available fonts can be found in "/usr/share/kbd/consolefonts"\n'
-	title += 'e.g. setfont LatGrkCyr-8x16 (to display latin/greek/cyrillic characters)\n'
-
-	result = SelectMenu[Language](
-		group,
-		header=title,
-		allow_skip=True,
-		allow_reset=False,
-		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(header=tr('Select language')),
-	).run()
-
-	match result.type_:
-		case ResultType.Skip:
-			return preset
-		case ResultType.Selection:
-			return result.get_value()
-		case ResultType.Reset:
-			raise ValueError('Language selection not handled')
-
-
 def ask_additional_packages_to_install(
 	preset: list[str] = [],
 	repositories: set[Repository] = set(),
@@ -152,17 +117,17 @@ def ask_additional_packages_to_install(
 	repositories |= {Repository.Core, Repository.Extra}
 
 	respos_text = ', '.join([r.value for r in repositories])
-	output = tr('Repositories: {}').format(respos_text) + '\n'
+	output = f'Repositories: {respos_text}' + '\n'
 
-	output += tr('Loading packages...')
+	output += 'Loading packages...'
 	Tui.print(output, clear_screen=True)
 
 	packages = list_available_packages(tuple(repositories))
 	package_groups = PackageGroup.from_available_packages(packages)
 
 	# Additional packages (with some light weight error handling for invalid package names)
-	header = tr('Only packages such as base, base-devel, linux, linux-firmware, efibootmgr and optional profile packages are installed.') + '\n'
-	header += tr('Select any packages from the below list that should be installed additionally') + '\n'
+	header = 'Only packages such as base, base-devel, linux, linux-firmware, efibootmgr and optional profile packages are installed.' + '\n'
+	header += 'Select any packages from the below list that should be installed additionally' + '\n'
 
 	# there are over 15k packages so this needs to be quick
 	preset_packages: list[AvailablePackage | PackageGroup] = []
@@ -218,10 +183,10 @@ def ask_additional_packages_to_install(
 def add_number_of_parallel_downloads(preset: int | None = None) -> int | None:
 	max_recommended = 5
 
-	header = tr('This option enables the number of parallel downloads that can occur during package downloads') + '\n'
-	header += tr('Enter the number of parallel downloads to be enabled.\n\nNote:\n')
-	header += tr(' - Maximum recommended value : {} ( Allows {} parallel downloads at a time )').format(max_recommended, max_recommended) + '\n'
-	header += tr(' - Disable/Default : 0 ( Disables parallel downloading, allows only 1 download at a time )\n')
+	header = 'This option enables the number of parallel downloads that can occur during package downloads' + '\n'
+	header += 'Enter the number of parallel downloads to be enabled.\n\nNote:\n'
+	header += f' - Maximum recommended value : {max_recommended} ( Allows {max_recommended} parallel downloads at a time )' + '\n'
+	header += ' - Disable/Default : 0 ( Disables parallel downloading, allows only 1 download at a time )\n'
 
 	def validator(s: str | None) -> str | None:
 		if s is not None:
@@ -232,10 +197,10 @@ def add_number_of_parallel_downloads(preset: int | None = None) -> int | None:
 			except Exception:
 				pass
 
-		return tr('Invalid download number')
+		return 'Invalid download number'
 
 	result = EditMenu(
-		tr('Number downloads'),
+		'Number downloads',
 		header=header,
 		allow_skip=True,
 		allow_reset=True,
@@ -268,8 +233,8 @@ def add_number_of_parallel_downloads(preset: int | None = None) -> int | None:
 
 
 def ask_post_installation() -> PostInstallationAction:
-	header = tr('Installation completed') + '\n\n'
-	header += tr('What would you like to do next?') + '\n'
+	header = 'Installation completed' + '\n\n'
+	header += 'What would you like to do next?' + '\n'
 
 	items = [MenuItem(action.value, value=action) for action in PostInstallationAction]
 	group = MenuItemGroup(items)
@@ -289,7 +254,7 @@ def ask_post_installation() -> PostInstallationAction:
 
 
 def ask_abort() -> None:
-	prompt = tr('Do you really want to abort?') + '\n'
+	prompt = 'Do you really want to abort?' + '\n'
 	group = MenuItemGroup.yes_no()
 
 	result = SelectMenu[bool](

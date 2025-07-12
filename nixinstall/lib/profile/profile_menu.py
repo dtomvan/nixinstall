@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import override
 
 from nixinstall.default_profiles.profile import GreeterType, Profile
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -37,14 +36,14 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 	def _define_menu_options(self) -> list[MenuItem]:
 		return [
 			MenuItem(
-				text=tr('Type'),
+				text='Type',
 				action=self._select_profile,
 				value=self._profile_config.profile,
 				preview_action=self._preview_profile,
 				key='profile',
 			),
 			MenuItem(
-				text=tr('Graphics driver'),
+				text='Graphics driver',
 				action=self._select_gfx_driver,
 				value=self._profile_config.gfx_driver if self._profile_config.profile and self._profile_config.profile.is_graphic_driver_supported() else None,
 				preview_action=self._prev_gfx,
@@ -53,7 +52,7 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 				key='gfx_driver',
 			),
 			MenuItem(
-				text=tr('Greeter'),
+				text='Greeter',
 				action=lambda x: select_greeter(preset=x),
 				value=self._profile_config.greeter if self._profile_config.profile and self._profile_config.profile.is_greeter_supported() else None,
 				enabled=self._profile_config.profile.is_graphic_driver_supported() if self._profile_config.profile else False,
@@ -101,8 +100,8 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 
 			if driver and 'Sway' in profile.current_selection_names():
 				if driver.is_nvidia():
-					header = tr('The proprietary Nvidia driver is not supported by Sway.') + '\n'
-					header += tr('It is likely that you will run into issues, are you okay with that?') + '\n'
+					header = 'The proprietary Nvidia driver is not supported by Sway.' + '\n'
+					header += 'It is likely that you will run into issues, are you okay with that?' + '\n'
 
 					group = MenuItemGroup.yes_no()
 					group.focus_item = MenuItem.no()
@@ -131,7 +130,7 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 
 	def _prev_greeter(self, item: MenuItem) -> str | None:
 		if item.value:
-			return f'{tr("Greeter")}: {item.value.value}'
+			return f'{"Greeter"}: {item.value.value}'
 		return None
 
 	def _preview_profile(self, item: MenuItem) -> str | None:
@@ -140,7 +139,7 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 
 		if profile:
 			if (sub_profiles := profile.current_selection) is not None:
-				text += tr('Selected profiles: ')
+				text += 'Selected profiles: '
 				text += ', '.join([p.name for p in sub_profiles]) + '\n'
 
 			if packages := profile.packages_text(include_sub_packages=True):
@@ -172,7 +171,7 @@ def select_greeter(
 		result = SelectMenu[GreeterType](
 			group,
 			allow_skip=True,
-			frame=FrameProperties.min(tr('Greeter')),
+			frame=FrameProperties.min('Greeter'),
 			alignment=Alignment.CENTER,
 		).run()
 
@@ -197,7 +196,7 @@ def select_profile(
 	top_level_profiles = profile_handler.get_top_level_profiles()
 
 	if header is None:
-		header = tr('This is a list of pre-programmed default_profiles') + '\n'
+		header = 'This is a list of pre-programmed default_profiles' + '\n'
 
 	items = [MenuItem(p.name, value=p) for p in top_level_profiles]
 	group = MenuItemGroup(items, sort_items=True)
@@ -209,7 +208,7 @@ def select_profile(
 		allow_reset=allow_reset,
 		allow_skip=True,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Main profile')),
+		frame=FrameProperties.min('Main profile'),
 	).run()
 
 	match result.type_:

@@ -6,8 +6,6 @@ from enum import Enum
 from functools import cached_property
 from typing import Any, ClassVar
 
-from nixinstall.lib.translationhandler import tr
-
 from ..lib.utils.unicode import unicode_ljust
 
 
@@ -35,14 +33,14 @@ class MenuItem:
 	@classmethod
 	def yes(cls) -> 'MenuItem':
 		if cls._yes is None:
-			cls._yes = cls(tr('Yes'), value=True)
+			cls._yes = cls('Yes', value=True)
 
 		return cls._yes
 
 	@classmethod
 	def no(cls) -> 'MenuItem':
 		if cls._no is None:
-			cls._no = cls(tr('No'), value=True)
+			cls._no = cls('No', value=True)
 
 		return cls._no
 
@@ -219,7 +217,7 @@ class MenuItemGroup:
 
 	def _default_suffix(self, item: MenuItem) -> str:
 		if self.default_item == item:
-			return tr(' (default)')
+			return ' (default)'
 		return ''
 
 	@cached_property

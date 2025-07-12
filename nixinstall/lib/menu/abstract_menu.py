@@ -3,7 +3,6 @@ from __future__ import annotations
 from types import TracebackType
 from typing import Any, Self
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu, Tui
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -135,7 +134,7 @@ class AbstractSubMenu[ValueT](AbstractMenu[ValueT]):
 		auto_cursor: bool = True,
 		allow_reset: bool = False,
 	):
-		back_text = f'{Chars.Right_arrow} ' + tr('Back')
+		back_text = f'{Chars.Right_arrow} ' + 'Back'
 		item_group.add_item(MenuItem(text=back_text))
 
 		super().__init__(

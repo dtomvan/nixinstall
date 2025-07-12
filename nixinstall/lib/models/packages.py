@@ -5,8 +5,6 @@ from typing import Any, override
 
 from pydantic import BaseModel
 
-from nixinstall.lib.translationhandler import tr
-
 
 class Repository(Enum):
 	Core = 'core'
@@ -199,6 +197,6 @@ class PackageGroup:
 		return pkg_groups
 
 	def info(self) -> str:
-		output = tr('Package group:') + '\n  - '
+		output = 'Package group:' + '\n  - '
 		output += '\n  - '.join(self.packages)
 		return output

@@ -15,7 +15,6 @@ def ask_user_questions() -> None:
 		global_menu = GlobalMenu(arch_config_handler.config)
 		global_menu.disable_all()
 
-		global_menu.set_enabled('archinstall_language', True)
 		global_menu.set_enabled('disk_config', True)
 		global_menu.set_enabled('swap', True)
 		global_menu.set_enabled('__config__', True)

@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-from nixinstall.lib.translationhandler import tr
-
 from ..locale.utils import get_kb_layout
 
 
@@ -27,9 +25,9 @@ class LocaleConfiguration:
 		}
 
 	def preview(self) -> str:
-		output = '{}: {}\n'.format(tr('Keyboard layout'), self.kb_layout)
-		output += '{}: {}\n'.format(tr('Locale language'), self.sys_lang)
-		output += '{}: {}'.format(tr('Locale encoding'), self.sys_enc)
+		output = '{}: {}\n'.format('Keyboard layout', self.kb_layout)
+		output += '{}: {}\n'.format('Locale language', self.sys_lang)
+		output += '{}: {}'.format('Locale encoding', self.sys_enc)
 		return output
 
 	@classmethod

@@ -1,6 +1,5 @@
 from typing import override
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -29,21 +28,21 @@ class LocaleMenu(AbstractSubMenu[LocaleConfiguration]):
 	def _define_menu_options(self) -> list[MenuItem]:
 		return [
 			MenuItem(
-				text=tr('Keyboard layout'),
+				text='Keyboard layout',
 				action=self._select_kb_layout,
 				value=self._locale_conf.kb_layout,
 				preview_action=self._prev_locale,
 				key='kb_layout',
 			),
 			MenuItem(
-				text=tr('Locale language'),
+				text='Locale language',
 				action=select_locale_lang,
 				value=self._locale_conf.sys_lang,
 				preview_action=self._prev_locale,
 				key='sys_lang',
 			),
 			MenuItem(
-				text=tr('Locale encoding'),
+				text='Locale encoding',
 				action=select_locale_enc,
 				value=self._locale_conf.sys_enc,
 				preview_action=self._prev_locale,
@@ -85,7 +84,7 @@ def select_locale_lang(preset: str | None = None) -> str | None:
 	result = SelectMenu[str](
 		group,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Locale language')),
+		frame=FrameProperties.min('Locale language'),
 		allow_skip=True,
 	).run()
 
@@ -109,7 +108,7 @@ def select_locale_enc(preset: str | None = None) -> str | None:
 	result = SelectMenu[str](
 		group,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Locale encoding')),
+		frame=FrameProperties.min('Locale encoding'),
 		allow_skip=True,
 	).run()
 
@@ -141,7 +140,7 @@ def select_kb_layout(preset: str | None = None) -> str | None:
 	result = SelectMenu[str](
 		group,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Keyboard layout')),
+		frame=FrameProperties.min('Keyboard layout'),
 		allow_skip=True,
 	).run()
 

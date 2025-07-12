@@ -10,7 +10,6 @@ from nixinstall.lib.models.device_model import (
 	LvmVolume,
 	PartitionModification,
 )
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import EditMenu, SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -51,14 +50,14 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 	def _define_menu_options(self) -> list[MenuItem]:
 		return [
 			MenuItem(
-				text=tr('Encryption type'),
+				text='Encryption type',
 				action=lambda x: select_encryption_type(self._device_modifications, self._lvm_config, x),
 				value=self._enc_config.encryption_type,
 				preview_action=self._preview,
 				key='encryption_type',
 			),
 			MenuItem(
-				text=tr('Encryption password'),
+				text='Encryption password',
 				action=lambda x: select_encrypted_password(),
 				value=self._enc_config.encryption_password,
 				dependencies=[self._check_dep_enc_type],
@@ -66,7 +65,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 				key='encryption_password',
 			),
 			MenuItem(
-				text=tr('Iteration time'),
+				text='Iteration time',
 				action=select_iteration_time,
 				value=self._enc_config.iter_time,
 				dependencies=[self._check_dep_enc_type],
@@ -74,7 +73,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 				key='iter_time',
 			),
 			MenuItem(
-				text=tr('Partitions'),
+				text='Partitions',
 				action=lambda x: select_partitions_to_encrypt(self._device_modifications, x),
 				value=self._enc_config.partitions,
 				dependencies=[self._check_dep_partitions],
@@ -82,7 +81,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 				key='partitions',
 			),
 			MenuItem(
-				text=tr('LVM volumes'),
+				text='LVM volumes',
 				action=self._select_lvm_vols,
 				value=self._enc_config.lvm_volumes,
 				dependencies=[self._check_dep_lvm_vols],
@@ -90,7 +89,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 				key='lvm_volumes',
 			),
 			MenuItem(
-				text=tr('HSM'),
+				text='HSM',
 				action=select_hsm,
 				value=self._enc_config.hsm_device,
 				dependencies=[self._check_dep_enc_type],
@@ -185,7 +184,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 
 		if enc_type:
 			enc_text = EncryptionType.type_to_text(enc_type)
-			return f'{tr("Encryption type")}: {enc_text}'
+			return f'{"Encryption type"}: {enc_text}'
 
 		return None
 
@@ -193,7 +192,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 		enc_pwd = self._item_group.find_by_key('encryption_password').value
 
 		if enc_pwd:
-			return f'{tr("Encryption password")}: {enc_pwd.hidden()}'
+			return f'{"Encryption password"}: {enc_pwd.hidden()}'
 
 		return None
 
@@ -201,7 +200,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 		partitions: list[PartitionModification] | None = self._item_group.find_by_key('partitions').value
 
 		if partitions:
-			output = tr('Partitions to be encrypted') + '\n'
+			output = 'Partitions to be encrypted' + '\n'
 			output += FormattedOutput.as_table(partitions)
 			return output.rstrip()
 
@@ -211,7 +210,7 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 		volumes: list[PartitionModification] | None = self._item_group.find_by_key('lvm_volumes').value
 
 		if volumes:
-			output = tr('LVM volumes to be encrypted') + '\n'
+			output = 'LVM volumes to be encrypted' + '\n'
 			output += FormattedOutput.as_table(volumes)
 			return output.rstrip()
 
@@ -225,14 +224,14 @@ class DiskEncryptionMenu(AbstractSubMenu[DiskEncryption]):
 
 		output = str(fido_device.path)
 		output += f' ({fido_device.manufacturer}, {fido_device.product})'
-		return f'{tr("HSM device")}: {output}'
+		return f'{"HSM device"}: {output}'
 
 	def _prev_iter_time(self) -> str | None:
 		iter_time = self._item_group.find_by_key('iter_time').value
 		enc_type = self._item_group.find_by_key('encryption_type').value
 
 		if iter_time and enc_type != EncryptionType.NoEncryption:
-			return f'{tr("Iteration time")}: {iter_time}ms'
+			return f'{"Iteration time"}: {iter_time}ms'
 
 		return None
 
@@ -263,7 +262,7 @@ def select_encryption_type(
 		allow_skip=True,
 		allow_reset=True,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Encryption type')),
+		frame=FrameProperties.min('Encryption type'),
 	).run()
 
 	match result.type_:
@@ -276,9 +275,9 @@ def select_encryption_type(
 
 
 def select_encrypted_password() -> Password | None:
-	header = tr('Enter disk encryption password (leave blank for no encryption)') + '\n'
+	header = 'Enter disk encryption password (leave blank for no encryption)' + '\n'
 	password = get_password(
-		text=tr('Disk encryption password'),
+		text='Disk encryption password',
 		header=header,
 		allow_skip=True,
 	)
@@ -287,7 +286,7 @@ def select_encrypted_password() -> Password | None:
 
 
 def select_hsm(preset: Fido2Device | None = None) -> Fido2Device | None:
-	header = tr('Select a FIDO2 device to use for HSM') + '\n'
+	header = 'Select a FIDO2 device to use for HSM' + '\n'
 
 	try:
 		fido_devices = Fido2.get_cryptenroll_devices()
@@ -379,9 +378,9 @@ def select_lvm_vols_to_encrypt(
 
 
 def select_iteration_time(preset: int | None = None) -> int | None:
-	header = tr('Enter iteration time for LUKS encryption (in milliseconds)') + '\n'
-	header += tr('Higher values increase security but slow down boot time') + '\n'
-	header += tr(f'Default: {DEFAULT_ITER_TIME}ms, Recommended range: 1000-60000') + '\n'
+	header = 'Enter iteration time for LUKS encryption (in milliseconds)' + '\n'
+	header += 'Higher values increase security but slow down boot time' + '\n'
+	header += f'Default: {DEFAULT_ITER_TIME}ms, Recommended range: 1000-60000' + '\n'
 
 	def validate_iter_time(value: str | None) -> str | None:
 		if not value:
@@ -390,15 +389,15 @@ def select_iteration_time(preset: int | None = None) -> int | None:
 		try:
 			iter_time = int(value)
 			if iter_time < 100:
-				return tr('Iteration time must be at least 100ms')
+				return 'Iteration time must be at least 100ms'
 			if iter_time > 120000:
-				return tr('Iteration time must be at most 120000ms')
+				return 'Iteration time must be at most 120000ms'
 			return None
 		except ValueError:
-			return tr('Please enter a valid number')
+			return 'Please enter a valid number'
 
 	result = EditMenu(
-		tr('Iteration time'),
+		'Iteration time',
 		header=header,
 		alignment=Alignment.CENTER,
 		allow_skip=True,

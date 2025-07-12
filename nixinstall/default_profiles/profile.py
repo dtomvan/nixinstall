@@ -4,8 +4,6 @@ import sys
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
-from nixinstall.lib.translationhandler import tr
-
 if TYPE_CHECKING:
 	from ..lib.installer import Installer
 
@@ -196,7 +194,7 @@ class Profile:
 				if sub_profile.packages:
 					packages.update(sub_profile.packages)
 
-		text = tr('Installed packages') + ':\n'
+		text = 'Installed packages' + ':\n'
 
 		for pkg in sorted(packages):
 			text += f'\t- {pkg}\n'

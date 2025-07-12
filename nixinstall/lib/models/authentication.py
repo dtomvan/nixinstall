@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, NotRequired, TypedDict
 
-from nixinstall.lib.translationhandler import tr
-
 
 class U2FLoginConfigSerialization(TypedDict):
 	u2f_login_method: str
@@ -21,9 +19,9 @@ class U2FLoginMethod(Enum):
 	def display_value(self) -> str:
 		match self:
 			case U2FLoginMethod.Passwordless:
-				return tr('Passwordless login')
+				return 'Passwordless login'
 			case U2FLoginMethod.SecondFactor:
-				return tr('Second factor login')
+				return 'Second factor login'
 			case _:
 				raise ValueError(f'Unknown type: {self}')
 

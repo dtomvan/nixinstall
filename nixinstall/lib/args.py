@@ -25,7 +25,6 @@ from nixinstall.lib.models.profile_model import ProfileConfiguration
 from nixinstall.lib.models.users import Password, User
 from nixinstall.lib.output import debug, error, logger, warn
 from nixinstall.lib.plugins import load_plugin
-from nixinstall.lib.translationhandler import Language, tr, translation_handler
 from nixinstall.lib.utils.util import get_password
 from nixinstall.tui.curses_menu import Tui
 
@@ -57,7 +56,6 @@ class ArchConfig:
 	version: str | None = None
 	script: str | None = None
 	locale_config: LocaleConfiguration | None = None
-	archinstall_language: Language = field(default_factory=lambda: translation_handler.get_language_by_abbr('en'))
 	disk_config: DiskLayoutConfiguration | None = None
 	profile_config: ProfileConfiguration | None = None
 	mirror_config: MirrorConfiguration | None = None
@@ -97,7 +95,6 @@ class ArchConfig:
 		config: Any = {
 			'version': self.version,
 			'script': self.script,
-			'nixinstall-language': self.archinstall_language.json(),
 			'hostname': self.hostname,
 			'kernels': self.kernels,
 			'ntp': self.ntp,
@@ -137,9 +134,6 @@ class ArchConfig:
 
 		if script := args_config.get('script', None):
 			arch_config.script = script
-
-		if archinstall_lang := args_config.get('nixinstall-language', None):
-			arch_config.archinstall_language = translation_handler.get_language_by_name(archinstall_lang)
 
 		if disk_config := args_config.get('disk_config', {}):
 			enc_password = args_config.get('encryption_password', '')
@@ -458,7 +452,7 @@ class ArchConfigHandler:
 					return json.loads(creds_data)
 				except ValueError as err:
 					if 'Invalid password' in str(err):
-						error(tr('Incorrect credentials file decryption password'))
+						error('Incorrect credentials file decryption password')
 						exit(1)
 					else:
 						debug(f'Error decrypting credentials file: {err}')
@@ -468,10 +462,10 @@ class ArchConfigHandler:
 
 				with Tui():
 					while True:
-						header = tr('Incorrect password') if incorrect_password else None
+						header = 'Incorrect password' if incorrect_password else None
 
 						decryption_pwd = get_password(
-							text=tr('Credentials file decryption password'),
+							text='Credentials file decryption password',
 							header=header,
 							allow_skip=False,
 							skip_confirmation=True,

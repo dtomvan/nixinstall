@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from nixinstall.lib.translationhandler import tr
-
 
 class HelpTextGroupId(Enum):
 	GENERAL = 'General'
@@ -40,8 +38,8 @@ class Help:
 		return HelpGroup(
 			group_id=HelpTextGroupId.GENERAL,
 			group_entries=[
-				HelpText(tr('Show help'), ['Ctrl+h']),
-				HelpText(tr('Exit help'), ['Esc']),
+				HelpText('Show help', ['Ctrl+h']),
+				HelpText('Exit help', ['Esc']),
 			],
 		)
 
@@ -50,13 +48,13 @@ class Help:
 		return HelpGroup(
 			group_id=HelpTextGroupId.NAVIGATION,
 			group_entries=[
-				HelpText(tr('Preview scroll up'), ['PgUp']),
-				HelpText(tr('Preview scroll down'), ['PgDown']),
-				HelpText(tr('Move up'), ['k', '↑']),
-				HelpText(tr('Move down'), ['j', '↓']),
-				HelpText(tr('Move right'), ['l', '→']),
-				HelpText(tr('Move left'), ['h', '←']),
-				HelpText(tr('Jump to entry'), ['1..9']),
+				HelpText('Preview scroll up', ['PgUp']),
+				HelpText('Preview scroll down', ['PgDown']),
+				HelpText('Move up', ['k', '↑']),
+				HelpText('Move down', ['j', '↓']),
+				HelpText('Move right', ['l', '→']),
+				HelpText('Move left', ['h', '←']),
+				HelpText('Jump to entry', ['1..9']),
 			],
 		)
 
@@ -65,12 +63,12 @@ class Help:
 		return HelpGroup(
 			group_id=HelpTextGroupId.SELECTION,
 			group_entries=[
-				HelpText(tr('Skip selection (if available)'), ['Esc']),
-				HelpText(tr('Reset selection (if available)'), ['Ctrl+c']),
-				HelpText(tr('Select on single select'), ['Enter']),
-				HelpText(tr('Select on multi select'), ['Space', 'Tab']),
-				HelpText(tr('Reset'), ['Ctrl-C']),
-				HelpText(tr('Skip selection menu'), ['Esc']),
+				HelpText('Skip selection (if available)', ['Esc']),
+				HelpText('Reset selection (if available)', ['Ctrl+c']),
+				HelpText('Select on single select', ['Enter']),
+				HelpText('Select on multi select', ['Space', 'Tab']),
+				HelpText('Reset', ['Ctrl-C']),
+				HelpText('Skip selection menu', ['Esc']),
 			],
 		)
 
@@ -79,8 +77,8 @@ class Help:
 		return HelpGroup(
 			group_id=HelpTextGroupId.SEARCH,
 			group_entries=[
-				HelpText(tr('Start search mode'), ['/']),
-				HelpText(tr('Exit search mode'), ['Esc']),
+				HelpText('Start search mode', ['/']),
+				HelpText('Exit search mode', ['Esc']),
 			],
 		)
 

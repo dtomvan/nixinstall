@@ -3,7 +3,6 @@ import readline
 import stat
 from pathlib import Path
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu, Tui
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -53,8 +52,8 @@ class ConfigurationOutput:
 		debug(self.user_config_to_json())
 
 	def confirm_config(self) -> bool:
-		header = f'{tr("The specified configuration will be applied")}. '
-		header += tr('Would you like to continue?') + '\n'
+		header = f'{"The specified configuration will be applied"}. '
+		header += 'Would you like to continue?' + '\n'
 
 		with Tui():
 			group = MenuItemGroup.yes_no()
@@ -70,7 +69,7 @@ class ConfigurationOutput:
 				allow_skip=False,
 				preview_size='auto',
 				preview_style=PreviewStyle.BOTTOM,
-				preview_frame=FrameProperties.max(tr('Configuration')),
+				preview_frame=FrameProperties.max('Configuration'),
 			).run()
 
 			if result.item() != MenuItem.yes():
@@ -131,7 +130,7 @@ def save_config(config: ArchConfig) -> None:
 			case 'user_creds':
 				if maybe_serial := config_output.user_credentials_to_json():
 					return f'{config_output.user_credentials_file}\n{maybe_serial}'
-				return tr('No configuration')
+				return 'No configuration'
 			case 'all':
 				output = [str(config_output.user_configuration_file)]
 				config_output.user_credentials_to_json()
@@ -143,17 +142,17 @@ def save_config(config: ArchConfig) -> None:
 
 	items = [
 		MenuItem(
-			tr('Save user configuration (including disk layout)'),
+			'Save user configuration (including disk layout)',
 			value='user_config',
 			preview_action=preview,
 		),
 		MenuItem(
-			tr('Save user credentials'),
+			'Save user credentials',
 			value='user_creds',
 			preview_action=preview,
 		),
 		MenuItem(
-			tr('Save all'),
+			'Save all',
 			value='all',
 			preview_action=preview,
 		),
@@ -163,7 +162,7 @@ def save_config(config: ArchConfig) -> None:
 	result = SelectMenu[str](
 		group,
 		allow_skip=True,
-		preview_frame=FrameProperties.max(tr('Configuration')),
+		preview_frame=FrameProperties.max('Configuration'),
 		preview_size='auto',
 		preview_style=PreviewStyle.RIGHT,
 	).run()
@@ -180,15 +179,15 @@ def save_config(config: ArchConfig) -> None:
 	readline.parse_and_bind('tab: complete')
 
 	dest_path = prompt_dir(
-		tr('Directory'),
-		tr('Enter a directory for the configuration(s) to be saved (tab completion enabled)') + '\n',
+		'Directory',
+		'Enter a directory for the configuration(s) to be saved (tab completion enabled)' + '\n',
 		allow_skip=True,
 	)
 
 	if not dest_path:
 		return
 
-	header = tr('Do you want to save the configuration file(s) to {}?').format(dest_path)
+	header = f'Do you want to save the configuration file(s) to {dest_path}?'
 
 	group = MenuItemGroup.yes_no()
 	group.focus_item = MenuItem.yes()
@@ -209,7 +208,7 @@ def save_config(config: ArchConfig) -> None:
 
 	debug(f'Saving configuration files to {dest_path.absolute()}')
 
-	header = tr('Do you want to encrypt the user_credentials.json file?')
+	header = 'Do you want to encrypt the user_credentials.json file?'
 
 	group = MenuItemGroup.yes_no()
 	group.focus_item = MenuItem.no()
@@ -228,7 +227,7 @@ def save_config(config: ArchConfig) -> None:
 		case ResultType.Selection:
 			if result.item() == MenuItem.yes():
 				password = get_password(
-					text=tr('Credentials file encryption password'),
+					text='Credentials file encryption password',
 					allow_skip=True,
 				)
 

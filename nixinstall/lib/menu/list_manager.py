@@ -2,7 +2,6 @@ import copy
 from typing import cast
 
 from nixinstall.lib.menu.menu_helper import MenuHelper
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -37,8 +36,8 @@ class ListManager[ValueT]:
 		self._prompt = prompt
 
 		self._separator = ''
-		self._confirm_action = tr('Confirm and exit')
-		self._cancel_action = tr('Cancel')
+		self._confirm_action = 'Confirm and exit'
+		self._cancel_action = 'Cancel'
 
 		self._terminate_actions = [self._confirm_action, self._cancel_action]
 		self._base_actions = base_actions

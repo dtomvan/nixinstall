@@ -3,7 +3,6 @@ from typing import override
 from nixinstall.lib.disk.fido import Fido2
 from nixinstall.lib.menu.abstract_menu import AbstractSubMenu
 from nixinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -34,7 +33,7 @@ class AuthenticationMenu(AbstractSubMenu[AuthenticationConfiguration]):
 	def _define_menu_options(self) -> list[MenuItem]:
 		return [
 			MenuItem(
-				text=tr('U2F login setup'),
+				text='U2F login setup',
 				action=setup_u2f_login,
 				value=self._auth_config.u2f_config,
 				preview_action=self._prev_u2f_login,
@@ -54,10 +53,10 @@ class AuthenticationMenu(AbstractSubMenu[AuthenticationConfiguration]):
 			u2f_config: U2FLoginConfiguration = item.value
 
 			login_method = u2f_config.u2f_login_method.display_value()
-			output = tr('U2F login method: ') + login_method
+			output = 'U2F login method: ' + login_method
 
 			output += '\n'
-			output += tr('Passwordless sudo: ') + (tr('Enabled') if u2f_config.passwordless_sudo else tr('Disabled'))
+			output += 'Passwordless sudo: ' + ('Enabled' if u2f_config.passwordless_sudo else 'Disabled')
 
 			return output
 		return None
@@ -76,7 +75,7 @@ def setup_u2f_login(preset: U2FLoginConfiguration) -> U2FLoginConfiguration | No
 	result = SelectMenu[U2FLoginMethod](
 		group,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('U2F Login Method')),
+		frame=FrameProperties.min('U2F Login Method'),
 		allow_skip=True,
 		allow_reset=True,
 	).run()
@@ -87,7 +86,7 @@ def setup_u2f_login(preset: U2FLoginConfiguration) -> U2FLoginConfiguration | No
 
 			group = MenuItemGroup.yes_no()
 			group.focus_item = MenuItem.no()
-			header = tr('Enable passwordless sudo?')
+			header = 'Enable passwordless sudo?'
 
 			result_sudo = SelectMenu[bool](
 				group,

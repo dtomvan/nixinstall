@@ -4,7 +4,6 @@ import math
 import time
 from pathlib import Path
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import Tui
 
 from ..interactions.general_conf import ask_abort
@@ -340,7 +339,7 @@ class FilesystemHandler:
 	def _final_warning(self, device_paths: str) -> bool:
 		# Issue a final warning before we continue with something un-revertable.
 		# We mention the drive one last time, and count from 5 to 0.
-		out = tr(' ! Formatting {} in ').format(device_paths)
+		out = f' ! Formatting {device_paths} in '
 		Tui.print(out, row=0, endl='', clear_screen=True)
 
 		try:

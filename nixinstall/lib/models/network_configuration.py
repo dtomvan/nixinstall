@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
-from nixinstall.lib.translationhandler import tr
-
 from ..models.profile_model import ProfileConfiguration
 
 if TYPE_CHECKING:
@@ -20,11 +18,11 @@ class NicType(Enum):
 	def display_msg(self) -> str:
 		match self:
 			case NicType.ISO:
-				return tr('Copy ISO network configuration to installation')
+				return 'Copy ISO network configuration to installation'
 			case NicType.NM:
-				return tr('Use NetworkManager (necessary to configure internet graphically in GNOME and KDE Plasma)')
+				return 'Use NetworkManager (necessary to configure internet graphically in GNOME and KDE Plasma)'
 			case NicType.MANUAL:
-				return tr('Manual configuration')
+				return 'Manual configuration'
 
 
 class _NicSerialization(TypedDict):

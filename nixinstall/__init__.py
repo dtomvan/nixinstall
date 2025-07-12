@@ -14,7 +14,6 @@ from .lib.hardware import SysInfo
 from .lib.output import FormattedOutput, debug, error, info, log, warn
 from .lib.pacman import Pacman
 from .lib.plugins import load_plugin, plugins
-from .lib.translationhandler import Language, tr, translation_handler
 from .tui.curses_menu import Tui
 
 
@@ -60,7 +59,7 @@ def _check_new_version() -> None:
 		debug('No nixinstall upgrades found')
 		return None
 
-	text = tr('New version available') + f': {upgrade}'
+	text = 'New version available' + f': {upgrade}'
 	info(text)
 	time.sleep(3)
 
@@ -76,7 +75,7 @@ def main() -> int:
 		return 0
 
 	if os.getuid() != 0:
-		print(tr('nixinstall requires root privileges to run. See --help for more.'))
+		print('nixinstall requires root privileges to run. See --help for more.')
 		return 1
 
 	_log_sys_info()
@@ -138,6 +137,5 @@ __all__ = [
 	'load_plugin',
 	'log',
 	'plugin',
-	'translation_handler',
 	'warn',
 ]

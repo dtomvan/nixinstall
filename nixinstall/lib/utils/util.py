@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import EditMenu
 from nixinstall.tui.result import ResultType
 from nixinstall.tui.types import Alignment
@@ -44,12 +43,12 @@ def get_password(
 			return password
 
 		if header is not None:
-			confirmation_header = f'{header}{tr("Password")}: {password.hidden()}\n'
+			confirmation_header = f'{header}{"Password"}: {password.hidden()}\n'
 		else:
-			confirmation_header = f'{tr("Password")}: {password.hidden()}\n'
+			confirmation_header = f'{"Password"}: {password.hidden()}\n'
 
 		result = EditMenu(
-			tr('Confirm password'),
+			'Confirm password',
 			header=confirmation_header,
 			alignment=Alignment.CENTER,
 			allow_skip=False,
@@ -59,7 +58,7 @@ def get_password(
 		if password._plaintext == result.text():
 			return password
 
-		failure = tr('The confirmation password did not match, please try again')
+		failure = 'The confirmation password did not match, please try again'
 
 
 def prompt_dir(
@@ -80,7 +79,7 @@ def prompt_dir(
 			else:
 				return None
 
-		return tr('Not a valid directory')
+		return 'Not a valid directory'
 
 	if validate:
 		validate_func = validate_path

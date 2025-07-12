@@ -30,7 +30,6 @@ from nixinstall.lib.models.device_model import (
 	Unit,
 )
 from nixinstall.lib.models.packages import Repository
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import Tui
 
 from .args import arch_config_handler
@@ -132,8 +131,8 @@ class Installer:
 
 			# We avoid printing /mnt/<log path> because that might confuse people if they note it down
 			# and then reboot, and a identical log file will be found in the ISO medium anyway.
-			Tui.print(str(tr('[!] A log file has been created here: {}').format(logger.path)))
-			Tui.print(tr('Please submit this issue (and file) to https://github.com/archlinux/nixinstall/issues'))
+			Tui.print(str(f'[!] A log file has been created here: {logger.path}'))
+			Tui.print('Please submit this issue (and file) to https://github.com/archlinux/nixinstall/issues')
 
 			# Return None to propagate the exception
 			return None
@@ -158,7 +157,7 @@ class Installer:
 			return False
 
 	def sync(self) -> None:
-		info(tr('Syncing the system...'))
+		info('Syncing the system...')
 		SysCommand('sync')
 
 	def remove_mod(self, mod: str) -> None:
@@ -177,21 +176,21 @@ class Installer:
 		"""
 
 		if not arch_config_handler.args.skip_ntp:
-			info(tr('Waiting for time sync (timedatectl show) to complete.'))
+			info('Waiting for time sync (timedatectl show) to complete.')
 
 			started_wait = time.time()
 			notified = False
 			while True:
 				if not notified and time.time() - started_wait > 5:
 					notified = True
-					warn(tr('Time synchronization not completing, while you wait - check the docs for workarounds: https://nixinstall.readthedocs.io/'))
+					warn('Time synchronization not completing, while you wait - check the docs for workarounds: https://nixinstall.readthedocs.io/')
 
 				time_val = SysCommand('timedatectl show --property=NTPSynchronized --value').decode()
 				if time_val and time_val.strip() == 'yes':
 					break
 				time.sleep(1)
 		else:
-			info(tr('Skipping waiting for automatic time sync (this can cause issues if time is out of sync during installation)'))
+			info('Skipping waiting for automatic time sync (this can cause issues if time is out of sync during installation)')
 
 		info('Waiting for automatic mirror selection (reflector) to complete.')
 		while self._service_state('reflector') not in ('dead', 'failed', 'exited'):
@@ -202,7 +201,7 @@ class Installer:
 		# 	time.sleep(1)
 
 		if not arch_config_handler.args.skip_wkd:
-			info(tr('Waiting for Arch Linux keyring sync (archlinux-keyring-wkd-sync) to complete.'))
+			info('Waiting for Arch Linux keyring sync (archlinux-keyring-wkd-sync) to complete.')
 			# Wait for the timer to kick in
 			while self._service_started('archlinux-keyring-wkd-sync.timer') is None:
 				time.sleep(1)

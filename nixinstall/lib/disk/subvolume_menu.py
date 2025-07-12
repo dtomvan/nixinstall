@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import assert_never, override
 
 from nixinstall.lib.models.device_model import SubvolumeModification
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import EditMenu
 from nixinstall.tui.result import ResultType
 from nixinstall.tui.types import Alignment
@@ -18,9 +17,9 @@ class SubvolumeMenu(ListManager[SubvolumeModification]):
 		prompt: str | None = None,
 	):
 		self._actions = [
-			tr('Add subvolume'),
-			tr('Edit subvolume'),
-			tr('Delete subvolume'),
+			'Add subvolume',
+			'Edit subvolume',
+			'Delete subvolume',
 		]
 
 		super().__init__(
@@ -38,10 +37,10 @@ class SubvolumeMenu(ListManager[SubvolumeModification]):
 		def validate(value: str | None) -> str | None:
 			if value:
 				return None
-			return tr('Value cannot be empty')
+			return 'Value cannot be empty'
 
 		result = EditMenu(
-			tr('Subvolume name'),
+			'Subvolume name',
 			alignment=Alignment.CENTER,
 			allow_skip=True,
 			default_text=str(preset.name) if preset else None,
@@ -58,10 +57,10 @@ class SubvolumeMenu(ListManager[SubvolumeModification]):
 			case _:
 				assert_never(result.type_)
 
-		header = f'{tr("Subvolume name")}: {name}\n'
+		header = f'{"Subvolume name"}: {name}\n'
 
 		path = prompt_dir(
-			tr('Subvolume mountpoint'),
+			'Subvolume mountpoint',
 			header=header,
 			allow_skip=True,
 			validate=True,

@@ -2,7 +2,6 @@ from typing import override
 
 from nixinstall.lib.menu.abstract_menu import AbstractSubMenu
 from nixinstall.lib.models.application import ApplicationConfiguration, Audio, AudioConfiguration, BluetoothConfiguration
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui.curses_menu import SelectMenu
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
@@ -36,14 +35,14 @@ class ApplicationMenu(AbstractSubMenu[ApplicationConfiguration]):
 	def _define_menu_options(self) -> list[MenuItem]:
 		return [
 			MenuItem(
-				text=tr('Bluetooth'),
+				text='Bluetooth',
 				action=select_bluetooth,
 				value=self._app_config.bluetooth_config,
 				preview_action=self._prev_bluetooth,
 				key='bluetooth_config',
 			),
 			MenuItem(
-				text=tr('Audio'),
+				text='Audio',
 				action=select_audio,
 				preview_action=self._prev_audio,
 				key='audio_config',
@@ -55,14 +54,14 @@ class ApplicationMenu(AbstractSubMenu[ApplicationConfiguration]):
 			bluetooth_config: BluetoothConfiguration = item.value
 
 			output = 'Bluetooth: '
-			output += tr('Enabled') if bluetooth_config.enabled else tr('Disabled')
+			output += 'Enabled' if bluetooth_config.enabled else 'Disabled'
 			return output
 		return None
 
 	def _prev_audio(self, item: MenuItem) -> str | None:
 		if item.value is not None:
 			config: AudioConfiguration = item.value
-			return f'{tr("Audio")}: {config.audio.value}'
+			return f'{"Audio"}: {config.audio.value}'
 		return None
 
 
@@ -73,7 +72,7 @@ def select_bluetooth(preset: BluetoothConfiguration | None) -> BluetoothConfigur
 	if preset is not None:
 		group.set_selected_by_value(preset.enabled)
 
-	header = tr('Would you like to configure Bluetooth?') + '\n'
+	header = 'Would you like to configure Bluetooth?' + '\n'
 
 	result = SelectMenu[bool](
 		group,
@@ -105,7 +104,7 @@ def select_audio(preset: AudioConfiguration | None = None) -> AudioConfiguration
 		group,
 		allow_skip=True,
 		alignment=Alignment.CENTER,
-		frame=FrameProperties.min(tr('Audio')),
+		frame=FrameProperties.min('Audio'),
 	).run()
 
 	match result.type_:

@@ -20,7 +20,6 @@ from nixinstall.lib.models.users import User
 from nixinstall.lib.output import debug, error, info
 from nixinstall.lib.packages.packages import check_package_upgrade
 from nixinstall.lib.profile.profiles_handler import profile_handler
-from nixinstall.lib.translationhandler import tr
 from nixinstall.tui import Tui
 
 
@@ -35,7 +34,7 @@ def ask_user_questions() -> None:
 
 	upgrade = check_package_upgrade('nixinstall')
 	if upgrade:
-		text = tr('New version available') + f': {upgrade}'
+		text = 'New version available' + f': {upgrade}'
 		title_text = f'  ({text})'
 
 	with Tui():

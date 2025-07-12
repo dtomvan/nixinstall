@@ -1,7 +1,6 @@
 from typing import override
 
 from nixinstall.default_profiles.profile import Profile, ProfileType
-from nixinstall.lib.translationhandler import tr
 
 
 class XorgProfile(Profile):
@@ -20,7 +19,7 @@ class XorgProfile(Profile):
 
 	@override
 	def preview_text(self) -> str:
-		text = tr('Environment type: {}').format(self.profile_type.value)
+		text = f'Environment type: {self.profile_type.value}'
 		if packages := self.packages_text():
 			text += f'\n{packages}'
 

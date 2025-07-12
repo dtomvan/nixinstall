@@ -38,6 +38,7 @@
 
           buildInputs = with pkgs; [
             libxcrypt
+            parted
             parted.dev
             pkg-config
             systemdLibs

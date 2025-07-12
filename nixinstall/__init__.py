@@ -3,12 +3,10 @@
 import importlib
 import os
 import sys
-import time
 import traceback
 
 from nixinstall.lib.args import arch_config_handler
 from nixinstall.lib.disk.utils import disk_layouts
-from nixinstall.lib.packages.packages import check_package_upgrade
 
 from .lib.hardware import SysInfo
 from .lib.output import FormattedOutput, debug, error, info, log, warn
@@ -35,35 +33,6 @@ def _log_sys_info() -> None:
 	debug(f'Disk states before installing:\n{disk_layouts()}')
 
 
-def _fetch_arch_db() -> None:
-	info('Fetching Arch Linux package database...')
-	try:
-		Pacman.run('-Sy')
-	except Exception as e:
-		error('Failed to sync Arch Linux package database.')
-		if 'could not resolve host' in str(e).lower():
-			error('Most likely due to a missing network connection or DNS issue.')
-		error('Run nixinstall --debug and check /var/log/nixinstall/install.log for details.')
-
-		debug(f'Failed to sync Arch Linux package database: {e}')
-		exit(1)
-
-
-def _check_new_version() -> None:
-	info('Checking version...')
-	upgrade = None
-
-	upgrade = check_package_upgrade('nixinstall')
-
-	if upgrade is None:
-		debug('No nixinstall upgrades found')
-		return None
-
-	text = 'New version available' + f': {upgrade}'
-	info(text)
-	time.sleep(3)
-
-
 def main() -> int:
 	"""
 	This can either be run as the compiled and installed application: python setup.py install
@@ -79,12 +48,6 @@ def main() -> int:
 		return 1
 
 	_log_sys_info()
-
-	if not arch_config_handler.args.offline:
-		_fetch_arch_db()
-
-		if not arch_config_handler.args.skip_version_check:
-			_check_new_version()
 
 	script = arch_config_handler.get_script()
 

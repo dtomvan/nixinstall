@@ -375,12 +375,6 @@ class ArchConfigHandler:
 			help='File path to a plugin to load',
 		)
 		parser.add_argument(
-			'--skip-version-check',
-			action='store_true',
-			default=False,
-			help='Skip the version check when running nixinstall',
-		)
-		parser.add_argument(
 			'--advanced',
 			action='store_true',
 			default=False,

@@ -18,7 +18,6 @@ from nixinstall.lib.models.device_model import (
 )
 from nixinstall.lib.models.users import User
 from nixinstall.lib.output import debug, error, info
-from nixinstall.lib.packages.packages import check_package_upgrade
 from nixinstall.lib.profile.profiles_handler import profile_handler
 from nixinstall.tui import Tui
 
@@ -31,11 +30,6 @@ def ask_user_questions() -> None:
 	"""
 
 	title_text = None
-
-	upgrade = check_package_upgrade('nixinstall')
-	if upgrade:
-		text = 'New version available' + f': {upgrade}'
-		title_text = f'  ({text})'
 
 	with Tui():
 		global_menu = GlobalMenu(arch_config_handler.config)

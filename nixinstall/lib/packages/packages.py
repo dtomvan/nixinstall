@@ -115,17 +115,6 @@ def installed_package(package: str) -> LocalPackage | None:
 
 
 @lru_cache
-def check_package_upgrade(package: str) -> str | None:
-	try:
-		upgrade = Pacman.run(f'-Qu {package}').decode()
-		return upgrade
-	except SysCallError:
-		debug(f'Failed to check for package upgrades: {package}')
-
-	return None
-
-
-@lru_cache
 def list_available_packages(
 	repositories: tuple[Repository],
 ) -> dict[str, AvailablePackage]:

@@ -175,40 +175,9 @@ class Installer:
 		We need to wait for it before we continue since we opted in to use a custom mirror/region.
 		"""
 
-		if not arch_config_handler.args.skip_ntp:
-			info('Waiting for time sync (timedatectl show) to complete.')
-
-			started_wait = time.time()
-			notified = False
-			while True:
-				if not notified and time.time() - started_wait > 5:
-					notified = True
-					warn('Time synchronization not completing, while you wait - check the docs for workarounds: https://nixinstall.readthedocs.io/')
-
-				time_val = SysCommand('timedatectl show --property=NTPSynchronized --value').decode()
-				if time_val and time_val.strip() == 'yes':
-					break
-				time.sleep(1)
-		else:
-			info('Skipping waiting for automatic time sync (this can cause issues if time is out of sync during installation)')
-
-		info('Waiting for automatic mirror selection (reflector) to complete.')
-		while self._service_state('reflector') not in ('dead', 'failed', 'exited'):
-			time.sleep(1)
-
-		# info('Waiting for pacman-init.service to complete.')
-		# while self._service_state('pacman-init') not in ('dead', 'failed', 'exited'):
-		# 	time.sleep(1)
-
-		if not arch_config_handler.args.skip_wkd:
-			info('Waiting for Arch Linux keyring sync (archlinux-keyring-wkd-sync) to complete.')
-			# Wait for the timer to kick in
-			while self._service_started('archlinux-keyring-wkd-sync.timer') is None:
-				time.sleep(1)
-
-			# Wait for the service to enter a finished state
-			while self._service_state('archlinux-keyring-wkd-sync.service') not in ('dead', 'failed', 'exited'):
-				time.sleep(1)
+		# TODO: We will most likely need to have something here for NixOS. I'll
+		# keep this funtion around for now.
+		debug('_verify_service_stop noop')
 
 	def _verify_boot_part(self) -> None:
 		"""

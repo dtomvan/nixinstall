@@ -40,8 +40,6 @@ class Arguments:
 	dry_run: bool = False
 	script: str | None = None
 	mountpoint: Path = Path('/mnt')
-	skip_ntp: bool = False
-	skip_wkd: bool = False
 	debug: bool = False
 	offline: bool = False
 	no_pkg_lookups: bool = False
@@ -336,18 +334,6 @@ class ArchConfigHandler:
 			nargs='?',
 			default=Path('/mnt'),
 			help='Define an alternate mount point for installation',
-		)
-		parser.add_argument(
-			'--skip-ntp',
-			action='store_true',
-			help='Disables NTP checks during installation',
-			default=False,
-		)
-		parser.add_argument(
-			'--skip-wkd',
-			action='store_true',
-			help='Disables checking if archlinux keyring wkd sync is complete.',
-			default=False,
 		)
 		parser.add_argument(
 			'--debug',

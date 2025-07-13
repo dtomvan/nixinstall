@@ -72,7 +72,11 @@
             pname = "nixinstall";
             version = "3.0.8";
 
-            src = ./.;
+            src = pkgs.lib.sourceFilesBySuffices ./. [
+              ".py"
+              ".toml"
+              ".lock"
+            ];
 
             pyproject = true;
 

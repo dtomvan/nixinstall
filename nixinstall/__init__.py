@@ -1,4 +1,4 @@
-"""Arch Linux installer - guided, templates etc."""
+"""NixOS installer - guided only, fork of archinstall"""
 
 import importlib
 import os
@@ -69,7 +69,7 @@ def run_as_a_module() -> None:
 
 			text = (
 				'nixinstall experienced the above error. If you think this is a bug, please report it to\n'
-				'https://github.com/archlinux/nixinstall and include the log file "/var/log/nixinstall/install.log".\n\n'
+				'https://github.com/dtomvan/nixinstall and include the log file "/var/log/nixinstall/install.log".\n\n'
 				"Hint: To extract the log from a live ISO \ncurl -F'file=@/var/log/nixinstall/install.log' https://0x0.st\n"
 			)
 

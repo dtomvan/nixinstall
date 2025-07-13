@@ -88,7 +88,7 @@ class GlobalMenu(AbstractMenu[None]):
 			),
 			MenuItem(
 				text='Hostname',
-				value='archlinux',
+				value='nixos',
 				action=ask_hostname,
 				preview_action=self._prev_hostname,
 				key='hostname',

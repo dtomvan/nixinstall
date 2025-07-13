@@ -1,11 +1,9 @@
 import glob
 import os
-import platform
 import re
 import shlex
 import shutil
 import subprocess
-import textwrap
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -35,7 +33,6 @@ from .args import arch_config_handler
 from .exceptions import DiskError, HardwareIncompatibilityError, RequirementError, ServiceException, SysCallError
 from .general import SysCommand, run
 from .hardware import SysInfo
-from .locale.utils import verify_keyboard_layout, verify_x11_keyboard_layout
 from .luks import Luks2
 from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
@@ -128,7 +125,7 @@ class Installer:
 			# We avoid printing /mnt/<log path> because that might confuse people if they note it down
 			# and then reboot, and a identical log file will be found in the ISO medium anyway.
 			Tui.print(str(f'[!] A log file has been created here: {logger.path}'))
-			Tui.print('Please submit this issue (and file) to https://github.com/archlinux/nixinstall/issues')
+			Tui.print('Please submit this issue (and file) to https://github.com/dtomvan/nixinstall/issues')
 
 			# Return None to propagate the exception
 			return None
@@ -147,7 +144,7 @@ class Installer:
 				warn(f' - {step}')
 
 			warn(f'Detailed error logs can be found at: {logger.directory}')
-			warn('Submit this zip file as an issue to https://github.com/archlinux/nixinstall/issues')
+			warn('Submit this zip file as an issue to https://github.com/dtomvan/nixinstall/issues')
 
 			self.sync_log_to_install_medium()
 			return False
@@ -556,7 +553,8 @@ class Installer:
 		return False
 
 	def activate_time_synchronization(self) -> None:
-		info('Activating systemd-timesyncd for time synchronization using Arch Linux and ntp.org NTP servers')
+		info('Activating systemd-timesyncd for time synchronization using NixOS and ntp.org NTP servers')
+		# TODO: actually fill in the NixOS option
 		self.enable_service('systemd-timesyncd')
 
 	def enable_espeakup(self) -> None:
@@ -693,7 +691,7 @@ class Installer:
 		if (binary := fs_type.installation_binary) is not None:
 			self._binaries.append(binary)
 
-		# https://github.com/archlinux/nixinstall/issues/1837
+		# https://github.com/archlinux/archinstall/issues/1837
 		if fs_type.fs_type_mount == 'btrfs':
 			self._disable_fstrim = True
 
@@ -755,10 +753,6 @@ class Installer:
 		# Periodic TRIM may improve the performance and longevity of SSDs whilst
 		# having no adverse effect on other devices. Most distributions enable
 		# periodic TRIM by default.
-		#
-		# https://github.com/archlinux/nixinstall/issues/880
-		# https://github.com/archlinux/nixinstall/issues/1837
-		# https://github.com/archlinux/nixinstall/issues/1841
 		if not self._disable_fstrim:
 			self.enable_periodic_trim()
 
@@ -837,7 +831,7 @@ class Installer:
 			info('Setting up swap on zram')
 			self.pacman.strap('zram-generator')
 
-			# We could use the default example below, but maybe not the best idea: https://github.com/archlinux/nixinstall/pull/678#issuecomment-962124813
+			# We could use the default example below, but maybe not the best idea: https://github.com/archlinux/archinstall/pull/678#issuecomment-962124813
 			# zram_example_location = '/usr/share/doc/zram-generator/zram-generator.conf.example'
 			# shutil.copy2(f"{self.target}{zram_example_location}", f"{self.target}/usr/lib/systemd/zram-generator.conf")
 			with open(f'{self.target}/etc/systemd/zram-generator.conf', 'w') as zram_conf:
@@ -895,7 +889,7 @@ class Installer:
 				# Note: UUID must be used, not PARTUUID for sd-encrypt to work
 				kernel_parameters.append(f'rd.luks.name={root_partition.uuid}=root')
 				# Note: tpm2-device and fido2-device don't play along very well:
-				# https://github.com/archlinux/nixinstall/pull/1196#issuecomment-1129715645
+				# https://github.com/archlinux/archinstall/pull/1196#issuecomment-1129715645
 				kernel_parameters.append('rd.luks.options=fido2-device=auto,password-echo=no')
 			elif partuuid:
 				debug(f'Root partition is an encrypted device, identifying by PARTUUID: {root_partition.partuuid}')
@@ -969,7 +963,7 @@ class Installer:
 			kernel_parameters = self._get_kernel_params_partition(root, id_root, partuuid)
 
 		# Zswap should be disabled when using zram.
-		# https://github.com/archlinux/nixinstall/issues/881
+		# https://github.com/archlinux/archinstall/issues/881
 		if self._zram_enabled:
 			kernel_parameters.append('zswap.enabled=0')
 
@@ -994,29 +988,7 @@ class Installer:
 		root: PartitionModification | LvmVolume,
 		entry_name: str,
 	) -> None:
-		# Loader entries are stored in $BOOT/loader:
-		# https://uapi-group.org/specifications/specs/boot_loader_specification/#mount-points
-		entries_dir = self.target / boot_partition.relative_mountpoint / 'loader/entries'
-		# Ensure that the $BOOT/loader/entries/ directory exists before trying to create files in it
-		entries_dir.mkdir(parents=True, exist_ok=True)
-
-		entry_template = textwrap.dedent(
-			f"""\
-			# Created by: nixinstall
-			# Created on: {self.init_time}
-			title   Arch Linux ({{kernel}}{{variant}})
-			linux   /vmlinuz-{{kernel}}
-			initrd  /initramfs-{{kernel}}{{variant}}.img
-			options {' '.join(self._get_kernel_params(root))}
-			""",
-		)
-
-		for kernel in self.kernels:
-			for variant in ('', '-fallback'):
-				# Setup the loader entry
-				name = entry_name.format(kernel=kernel, variant=variant)
-				entry_conf = entries_dir / name
-				entry_conf.write_text(entry_template.format(kernel=kernel, variant=variant))
+		error('Installer._create_bls_entries not implemented, should be done by NixOS automatically')
 
 	def _add_systemd_bootloader(
 		self,
@@ -1046,12 +1018,8 @@ class Installer:
 			bootctl_options.append(f'--esp-path={efi_partition.mountpoint}')
 			bootctl_options.append(f'--boot-path={boot_partition.mountpoint}')
 
-		# TODO: This is a temporary workaround to deal with https://github.com/archlinux/nixinstall/pull/3396#issuecomment-2996862019
-		# the systemd_version check can be removed once `--variables=BOOL` is merged into systemd.
-		if pacman_q_systemd := self.pacman.run('-Q systemd').trace_log:
-			systemd_version = int(pacman_q_systemd.split(b' ')[1][:3].decode())
-		else:
-			systemd_version = 257  # This works as a safety workaround for this hot-fix
+		# TODO: Remove this line after 258 hits nixpkgs 25.05/25.11
+		systemd_version = 257  # This works as a safety workaround for this hot-fix
 
 		# Install the boot loader
 		try:
@@ -1113,81 +1081,7 @@ class Installer:
 	) -> None:
 		debug('Installing grub bootloader')
 
-		self.pacman.strap('grub')
-
-		grub_default = self.target / 'etc/default/grub'
-		config = grub_default.read_text()
-
-		kernel_parameters = ' '.join(self._get_kernel_params(root, False, False))
-		config = re.sub(r'(GRUB_CMDLINE_LINUX=")("\n)', rf'\1{kernel_parameters}\2', config, count=1)
-
-		grub_default.write_text(config)
-
-		info(f'GRUB boot partition: {boot_partition.dev_path}')
-
-		boot_dir = Path('/boot')
-
-		command = [
-			'arch-chroot',
-			str(self.target),
-			'grub-install',
-			'--debug',
-		]
-
-		if SysInfo.has_uefi():
-			if not efi_partition:
-				raise ValueError('Could not detect efi partition')
-
-			info(f'GRUB EFI partition: {efi_partition.dev_path}')
-
-			self.pacman.strap('efibootmgr')  # TODO: Do we need? Yes, but remove from minimal_installation() instead?
-
-			boot_dir_arg = []
-			if boot_partition.mountpoint and boot_partition.mountpoint != boot_dir:
-				boot_dir_arg.append(f'--boot-directory={boot_partition.mountpoint}')
-				boot_dir = boot_partition.mountpoint
-
-			add_options = [
-				f'--target={platform.machine()}-efi',
-				f'--efi-directory={efi_partition.mountpoint}',
-				*boot_dir_arg,
-				'--bootloader-id=GRUB',
-				'--removable',
-			]
-
-			command.extend(add_options)
-
-			try:
-				SysCommand(command, peek_output=True)
-			except SysCallError:
-				try:
-					SysCommand(command, peek_output=True)
-				except SysCallError as err:
-					raise DiskError(f'Could not install GRUB to {self.target}{efi_partition.mountpoint}: {err}')
-		else:
-			info(f'GRUB boot partition: {boot_partition.dev_path}')
-
-			parent_dev_path = device_handler.get_parent_device_path(boot_partition.safe_dev_path)
-
-			add_options = [
-				'--target=i386-pc',
-				'--recheck',
-				str(parent_dev_path),
-			]
-
-			try:
-				SysCommand(command + add_options, peek_output=True)
-			except SysCallError as err:
-				raise DiskError(f'Failed to install GRUB boot on {boot_partition.dev_path}: {err}')
-
-		try:
-			SysCommand(
-				f'arch-chroot {self.target} grub-mkconfig -o {boot_dir}/grub/grub.cfg',
-			)
-		except SysCallError as err:
-			raise DiskError(f'Could not configure GRUB: {err}')
-
-		self._helper_flags['bootloader'] = 'grub'
+		error('_add_grub_bootloader not yet implemented')
 
 	def _add_limine_bootloader(
 		self,
@@ -1198,155 +1092,7 @@ class Installer:
 	) -> None:
 		debug('Installing Limine bootloader')
 
-		self.pacman.strap('limine')
-
-		info(f'Limine boot partition: {boot_partition.dev_path}')
-
-		limine_path = self.target / 'usr' / 'share' / 'limine'
-		config_path = None
-		hook_command = None
-
-		if SysInfo.has_uefi():
-			self.pacman.strap('efibootmgr')
-
-			if not efi_partition:
-				raise ValueError('Could not detect efi partition')
-			elif not efi_partition.mountpoint:
-				raise ValueError('EFI partition is not mounted')
-
-			info(f'Limine EFI partition: {efi_partition.dev_path}')
-
-			parent_dev_path = device_handler.get_parent_device_path(efi_partition.safe_dev_path)
-			is_target_usb = (
-				SysCommand(
-					f'udevadm info --no-pager --query=property --property=ID_BUS --value --name={parent_dev_path}',
-				).decode()
-				== 'usb'
-			)
-
-			try:
-				efi_dir_path = self.target / efi_partition.mountpoint.relative_to('/') / 'EFI'
-				efi_dir_path_target = efi_partition.mountpoint / 'EFI'
-				if is_target_usb:
-					efi_dir_path = efi_dir_path / 'BOOT'
-					efi_dir_path_target = efi_dir_path_target / 'BOOT'
-				else:
-					efi_dir_path = efi_dir_path / 'limine'
-					efi_dir_path_target = efi_dir_path_target / 'limine'
-
-				efi_dir_path.mkdir(parents=True, exist_ok=True)
-
-				for file in ('BOOTIA32.EFI', 'BOOTX64.EFI'):
-					shutil.copy(limine_path / file, efi_dir_path)
-			except Exception as err:
-				raise DiskError(f'Failed to install Limine in {self.target}{efi_partition.mountpoint}: {err}')
-
-			config_path = efi_dir_path / 'limine.conf'
-
-			hook_command = (
-				f'/usr/bin/cp /usr/share/limine/BOOTIA32.EFI {efi_dir_path_target}/ && /usr/bin/cp /usr/share/limine/BOOTX64.EFI {efi_dir_path_target}/'
-			)
-
-			if not is_target_usb:
-				# Create EFI boot menu entry for Limine.
-				try:
-					with open('/sys/firmware/efi/fw_platform_size') as fw_platform_size:
-						efi_bitness = fw_platform_size.read().strip()
-				except Exception as err:
-					raise OSError(f'Could not open or read /sys/firmware/efi/fw_platform_size to determine EFI bitness: {err}')
-
-				if efi_bitness == '64':
-					loader_path = '/EFI/limine/BOOTX64.EFI'
-				elif efi_bitness == '32':
-					loader_path = '/EFI/limine/BOOTIA32.EFI'
-				else:
-					raise ValueError(f'EFI bitness is neither 32 nor 64 bits. Found "{efi_bitness}".')
-
-				try:
-					SysCommand(
-						'efibootmgr'
-						' --create'
-						f' --disk {parent_dev_path}'
-						f' --part {efi_partition.partn}'
-						' --label "Arch Linux Limine Bootloader"'
-						f' --loader {loader_path}'
-						' --unicode'
-						' --verbose',
-					)
-				except Exception as err:
-					raise ValueError(f'SysCommand for efibootmgr failed: {err}')
-		else:
-			boot_limine_path = self.target / 'boot' / 'limine'
-			boot_limine_path.mkdir(parents=True, exist_ok=True)
-
-			config_path = boot_limine_path / 'limine.conf'
-
-			parent_dev_path = device_handler.get_parent_device_path(boot_partition.safe_dev_path)
-
-			if unique_path := device_handler.get_unique_path_for_device(parent_dev_path):
-				parent_dev_path = unique_path
-
-			try:
-				# The `limine-bios.sys` file contains stage 3 code.
-				shutil.copy(limine_path / 'limine-bios.sys', boot_limine_path)
-
-				# `limine bios-install` deploys the stage 1 and 2 to the
-				SysCommand(f'arch-chroot {self.target} limine bios-install {parent_dev_path}', peek_output=True)
-			except Exception as err:
-				raise DiskError(f'Failed to install Limine on {parent_dev_path}: {err}')
-
-			hook_command = f'/usr/bin/limine bios-install {parent_dev_path} && /usr/bin/cp /usr/share/limine/limine-bios.sys /boot/limine/'
-
-		hook_contents = textwrap.dedent(
-			f'''\
-			[Trigger]
-			Operation = Install
-			Operation = Upgrade
-			Type = Package
-			Target = limine
-
-			[Action]
-			Description = Deploying Limine after upgrade...
-			When = PostTransaction
-			Exec = /bin/sh -c "{hook_command}"
-			''',
-		)
-
-		hooks_dir = self.target / 'etc' / 'pacman.d' / 'hooks'
-		hooks_dir.mkdir(parents=True, exist_ok=True)
-
-		hook_path = hooks_dir / '99-limine.hook'
-		hook_path.write_text(hook_contents)
-
-		kernel_params = ' '.join(self._get_kernel_params(root))
-		config_contents = 'timeout: 5\n'
-
-		path_root = 'boot()'
-		if efi_partition and boot_partition != efi_partition:
-			path_root = f'uuid({boot_partition.partuuid})'
-
-		for kernel in self.kernels:
-			for variant in ('', '-fallback'):
-				if uki_enabled:
-					entry = [
-						'protocol: efi',
-						f'path: boot():/EFI/Linux/arch-{kernel}.efi',
-						f'cmdline: {kernel_params}',
-					]
-				else:
-					entry = [
-						'protocol: linux',
-						f'path: {path_root}:/vmlinuz-{kernel}',
-						f'cmdline: {kernel_params}',
-						f'module_path: {path_root}:/initramfs-{kernel}{variant}.img',
-					]
-
-				config_contents += f'\n/Arch Linux ({kernel}{variant})\n'
-				config_contents += '\n'.join([f'    {it}' for it in entry]) + '\n'
-
-		config_path.write_text(config_contents)
-
-		self._helper_flags['bootloader'] = 'limine'
+		error('_add_limine_bootloader not yet implemented')
 
 	def _add_efistub_bootloader(
 		self,
@@ -1356,52 +1102,7 @@ class Installer:
 	) -> None:
 		debug('Installing efistub bootloader')
 
-		self.pacman.strap('efibootmgr')
-
-		if not SysInfo.has_uefi():
-			raise HardwareIncompatibilityError
-
-		# TODO: Ideally we would want to check if another config
-		# points towards the same disk and/or partition.
-		# And in which case we should do some clean up.
-
-		if not uki_enabled:
-			loader = '/vmlinuz-{kernel}'
-
-			entries = (
-				'initrd=/initramfs-{kernel}.img',
-				*self._get_kernel_params(root),
-			)
-
-			cmdline = [' '.join(entries)]
-		else:
-			loader = '/EFI/Linux/arch-{kernel}.efi'
-			cmdline = []
-
-		parent_dev_path = device_handler.get_parent_device_path(boot_partition.safe_dev_path)
-
-		cmd_template = [
-			'efibootmgr',
-			'--create',
-			'--disk',
-			str(parent_dev_path),
-			'--part',
-			str(boot_partition.partn),
-			'--label',
-			'Arch Linux ({kernel})',
-			'--loader',
-			loader,
-			'--unicode',
-			*cmdline,
-			'--verbose',
-		]
-
-		for kernel in self.kernels:
-			# Setup the firmware entry
-			cmd = [arg.format(kernel=kernel) for arg in cmd_template]
-			SysCommand(cmd)
-
-		self._helper_flags['bootloader'] = 'efistub'
+		error('_add_efistub_bootloader not yet implemented')
 
 	def _config_uki(
 		self,
@@ -1591,29 +1292,9 @@ class Installer:
 
 	def set_keyboard_language(self, language: str) -> bool:
 		info(f'Setting keyboard language to {language}')
-
-		if len(language.strip()):
-			if not verify_keyboard_layout(language):
-				error(f'Invalid keyboard language specified: {language}')
-				return False
-
-			# In accordance with https://github.com/archlinux/nixinstall/issues/107#issuecomment-841701968
-			# Setting an empty keymap first, allows the subsequent call to set layout for both console and x11.
-			from .boot import Boot
-
-			with Boot(self) as session:
-				os.system('systemd-run --machine=nixinstall --pty localectl set-keymap ""')
-
-				try:
-					session.SysCommand(['localectl', 'set-keymap', language])
-				except SysCallError as err:
-					raise ServiceException(f"Unable to set locale '{language}' for console: {err}")
-
-				info(f'Keyboard language for this installation is now set to: {language}')
-		else:
-			info('Keyboard language was not changed from default (no language specified)')
-
-		return True
+		# TODO: use loadkeys, maybe set a variable for the target config
+		error('Installer.set_keyboard_language not yet implemented')
+		return False
 
 	def set_x11_keyboard_language(self, language: str) -> bool:
 		"""
@@ -1621,25 +1302,8 @@ class Installer:
 		This isn't strictly necessary since .set_keyboard_language() does this as well.
 		"""
 		info(f'Setting x11 keyboard language to {language}')
-
-		if len(language.strip()):
-			if not verify_x11_keyboard_layout(language):
-				error(f'Invalid x11-keyboard language specified: {language}')
-				return False
-
-			from .boot import Boot
-
-			with Boot(self) as session:
-				session.SysCommand(['localectl', 'set-x11-keymap', '""'])
-
-				try:
-					session.SysCommand(['localectl', 'set-x11-keymap', language])
-				except SysCallError as err:
-					raise ServiceException(f"Unable to set locale '{language}' for X11: {err}")
-		else:
-			info('X11-Keyboard language was not changed from default (no language specified)')
-
-		return True
+		error('Installer.set_x11_keyboard_language not yet implemented')
+		return False
 
 	def _service_started(self, service_name: str) -> str | None:
 		if os.path.splitext(service_name)[1] not in ('.service', '.target', '.timer'):

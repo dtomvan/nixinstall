@@ -471,7 +471,7 @@ def suggest_multi_disk_layout(
 	if home_device is None or root_device is None:
 		text = 'The selected drives do not have the minimum capacity required for an automatic suggestion\n'
 		text += f'Minimum capacity for /home partition: {min_home_partition_size.format_size(Unit.GiB)}GiB\n'
-		text += f'Minimum capacity for Arch Linux partition: {desired_root_partition_size.format_size(Unit.GiB)}GiB'
+		text += f'Minimum capacity for NixOS partition: {desired_root_partition_size.format_size(Unit.GiB)}GiB'
 
 		items = [MenuItem('Continue')]
 		group = MenuItemGroup(items)

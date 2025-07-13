@@ -57,7 +57,7 @@ class ArchConfig:
 	uki: bool = False
 	app_config: ApplicationConfiguration | None = None
 	auth_config: AuthenticationConfiguration | None = None
-	hostname: str = 'archlinux'
+	hostname: str = 'nixos'
 	kernels: list[str] = field(default_factory=lambda: ['linux'])
 	ntp: bool = True
 	packages: list[str] = field(default_factory=list)

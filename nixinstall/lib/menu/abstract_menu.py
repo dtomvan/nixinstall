@@ -41,7 +41,7 @@ class AbstractMenu[ValueT]:
 		# TODO: skip processing when it comes from a planified exit
 		if exc_type is not None:
 			error(str(exc_value))
-			Tui.print('Please submit this issue (and file) to https://github.com/archlinux/nixinstall/issues')
+			Tui.print('Please submit this issue (and file) to https://github.com/dtomvan/nixinstall/issues')
 
 			# Return None to propagate the exception
 			return None

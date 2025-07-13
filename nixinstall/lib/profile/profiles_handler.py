@@ -110,11 +110,6 @@ class ProfileHandler:
 
 		if details:
 			for detail in filter(None, details):
-				# [2024-04-19] TODO: Backwards compatibility after naming change: https://github.com/archlinux/nixinstall/pull/2421
-				#                    'Kde' is deprecated, remove this block in a future version
-				if detail == 'Kde':
-					detail = 'KDE Plasma'
-
 				if sub_profile := self.get_profile_by_name(detail):
 					valid_sub_profiles.append(sub_profile)
 				else:
@@ -224,7 +219,6 @@ class ProfileHandler:
 
 		if driver in [GfxDriver.NvidiaOpenKernel, GfxDriver.NvidiaProprietary]:
 			headers = [f'{kernel}-headers' for kernel in install_session.kernels]
-			# Fixes https://github.com/archlinux/nixinstall/issues/585
 			install_session.add_additional_packages(headers)
 		elif driver in [GfxDriver.AllOpenSource, GfxDriver.AmdOpenSource]:
 			# The order of these two are important if amdgpu is installed #808

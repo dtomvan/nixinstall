@@ -53,7 +53,7 @@ class PasswordStrength(Enum):
 		length: int,
 	) -> 'PasswordStrength':
 		# suggested evaluation
-		# https://github.com/archlinux/nixinstall/issues/1304#issuecomment-1146768163
+		# https://github.com/archlinux/archinstall/issues/1304#issuecomment-1146768163
 		if digit and upper and lower and symbol:
 			match length:
 				case num if 13 <= num:

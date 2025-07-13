@@ -1,31 +1,8 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from functools import cached_property
 from typing import Any, override
 
 from pydantic import BaseModel
-
-
-class Repository(Enum):
-	Core = 'core'
-	Extra = 'extra'
-	Multilib = 'multilib'
-	Testing = 'testing'
-
-	def get_repository_list(self) -> list[str]:
-		match self:
-			case Repository.Core:
-				return [Repository.Core.value]
-			case Repository.Extra:
-				return [Repository.Extra.value]
-			case Repository.Multilib:
-				return [Repository.Multilib.value]
-			case Repository.Testing:
-				return [
-					'core-testing',
-					'extra-testing',
-					'multilib-testing',
-				]
 
 
 @dataclass

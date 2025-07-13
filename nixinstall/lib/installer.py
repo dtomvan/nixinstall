@@ -29,7 +29,6 @@ from nixinstall.lib.models.device_model import (
 	SubvolumeModification,
 	Unit,
 )
-from nixinstall.lib.models.packages import Repository
 from nixinstall.tui.curses_menu import Tui
 
 from .args import arch_config_handler
@@ -40,12 +39,10 @@ from .locale.utils import verify_keyboard_layout, verify_x11_keyboard_layout
 from .luks import Luks2
 from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
-from .models.mirrors import MirrorConfiguration
 from .models.network_configuration import Nic
 from .models.users import User
 from .output import debug, error, info, log, logger, warn
 from .pacman import Pacman
-from .pacman.config import PacmanConfig
 from .storage import storage
 
 # Any package that the Installer() is responsible for (optional and the default ones)
@@ -471,45 +468,6 @@ class Installer:
 	def post_install_check(self, *args: str, **kwargs: str) -> list[str]:
 		return [step for step, flag in self._helper_flags.items() if flag is False]
 
-	def set_mirrors(
-		self,
-		mirror_config: MirrorConfiguration,
-		on_target: bool = False,
-	) -> None:
-		"""
-		Set the mirror configuration for the installation.
-
-		:param mirror_config: The mirror configuration to use.
-		:type mirror_config: MirrorConfiguration
-
-		:on_target: Whether to set the mirrors on the target system or the live system.
-		:param on_target: bool
-		"""
-		debug('Setting mirrors on ' + ('target' if on_target else 'live system'))
-
-		root = self.target if on_target else Path('/')
-		mirrorlist_config = root / 'etc/pacman.d/mirrorlist'
-		pacman_config = root / 'etc/pacman.conf'
-
-		repositories_config = mirror_config.repositories_config()
-		if repositories_config:
-			debug(f'Pacman config: {repositories_config}')
-
-			with open(pacman_config, 'a') as fp:
-				fp.write(repositories_config)
-
-		regions_config = mirror_config.regions_config(speed_sort=True)
-		if regions_config:
-			debug(f'Mirrorlist:\n{regions_config}')
-			mirrorlist_config.write_text(regions_config)
-
-		custom_servers = mirror_config.custom_servers_config()
-		if custom_servers:
-			debug(f'Custom servers:\n{custom_servers}')
-
-			content = mirrorlist_config.read_text()
-			mirrorlist_config.write_text(f'{custom_servers}\n\n{content}')
-
 	def genfstab(self, flags: str = '-pU') -> None:
 		fstab_path = self.target / 'etc' / 'fstab'
 		info(f'Updating {fstab_path}')
@@ -757,7 +715,6 @@ class Installer:
 
 	def minimal_installation(
 		self,
-		optional_repositories: list[Repository] = [],
 		mkinitcpio: bool = True,
 		hostname: str | None = None,
 		locale_config: LocaleConfiguration | None = LocaleConfiguration.default(),
@@ -792,17 +749,8 @@ class Installer:
 		else:
 			debug('nixinstall will not install any ucode.')
 
-		debug(f'Optional repositories: {optional_repositories}')
-
-		# This action takes place on the host system as pacstrap copies over package repository lists.
-		pacman_conf = PacmanConfig(self.target)
-		pacman_conf.enable(optional_repositories)
-		pacman_conf.apply()
-
 		self.pacman.strap(self._base_packages)
 		self._helper_flags['base-strapped'] = True
-
-		pacman_conf.persist()
 
 		# Periodic TRIM may improve the performance and longevity of SSDs whilst
 		# having no adverse effect on other devices. Most distributions enable

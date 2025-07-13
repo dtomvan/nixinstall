@@ -5,7 +5,6 @@ from pathlib import Path
 from ..exceptions import RequirementError
 from ..general import SysCommand
 from ..output import error, info, warn
-from .config import PacmanConfig
 
 
 class Pacman:
@@ -47,17 +46,9 @@ class Pacman:
 					continue
 				raise RequirementError(f'{bail_message}: {err}')
 
+	# TODO: remove later
 	def sync(self) -> None:
-		if self.synced:
-			return
-		self.ask(
-			'Could not sync a new package database',
-			'Could not sync mirrors',
-			self.run,
-			'-Syy',
-			default_cmd='pacman',
-		)
-		self.synced = True
+		warn("Sync called, this is a noop on NixOS")
 
 	def strap(self, packages: str | list[str]) -> None:
 		self.sync()
@@ -77,5 +68,4 @@ class Pacman:
 
 __all__ = [
 	'Pacman',
-	'PacmanConfig',
 ]

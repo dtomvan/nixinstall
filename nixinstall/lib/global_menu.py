@@ -25,15 +25,12 @@ from .interactions.network_menu import ask_to_configure_network
 from .interactions.system_conf import ask_for_bootloader, ask_for_swap, ask_for_uki, select_kernel
 from .locale.locale_menu import LocaleMenu
 from .menu.abstract_menu import CONFIG_KEY, AbstractMenu
-from .mirrors import MirrorMenu
 from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
-from .models.mirrors import MirrorConfiguration
 from .models.network_configuration import NetworkConfiguration, NicType
 from .models.profile_model import ProfileConfiguration
 from .models.users import Password, User
 from .output import FormattedOutput
-from .pacman.config import PacmanConfig
 from .utils.util import get_password
 
 
@@ -58,12 +55,7 @@ class GlobalMenu(AbstractMenu[None]):
 				preview_action=self._prev_locale,
 				key='locale_config',
 			),
-			MenuItem(
-				text='Mirrors and repositories',
-				action=self._mirror_configuration,
-				preview_action=self._prev_mirror_config,
-				key='mirror_config',
-			),
+			# TODO: add item for channels
 			MenuItem(
 				text='Disk configuration',
 				action=self._select_disk_config,
@@ -530,46 +522,3 @@ class GlobalMenu(AbstractMenu[None]):
 		preset = [] if preset is None else preset
 		users = ask_for_additional_users(defined_users=preset)
 		return users
-
-	def _mirror_configuration(self, preset: MirrorConfiguration | None = None) -> MirrorConfiguration:
-		mirror_configuration = MirrorMenu(preset=preset).run()
-
-		if mirror_configuration.optional_repositories:
-			# enable the repositories in the config
-			pacman_config = PacmanConfig(None)
-			pacman_config.enable(mirror_configuration.optional_repositories)
-			pacman_config.apply()
-
-		return mirror_configuration
-
-	def _prev_mirror_config(self, item: MenuItem) -> str | None:
-		if not item.value:
-			return None
-
-		mirror_config: MirrorConfiguration = item.value
-
-		output = ''
-		if mirror_config.mirror_regions:
-			title = 'Selected mirror regions'
-			divider = '-' * len(title)
-			regions = mirror_config.region_names
-			output += f'{title}\n{divider}\n{regions}\n\n'
-
-		if mirror_config.custom_servers:
-			title = 'Custom servers'
-			divider = '-' * len(title)
-			servers = mirror_config.custom_server_urls
-			output += f'{title}\n{divider}\n{servers}\n\n'
-
-		if mirror_config.optional_repositories:
-			title = 'Optional repositories'
-			divider = '-' * len(title)
-			repos = ', '.join([r.value for r in mirror_config.optional_repositories])
-			output += f'{title}\n{divider}\n{repos}\n\n'
-
-		if mirror_config.custom_repositories:
-			title = 'Custom repositories'
-			table = FormattedOutput.as_table(mirror_config.custom_repositories)
-			output += f'{title}:\n\n{table}'
-
-		return output.strip()

@@ -33,9 +33,8 @@ from .device_model import (
 	_DeviceInfo,
 )
 from .locale import LocaleConfiguration
-from .mirrors import CustomRepository, MirrorConfiguration, MirrorRegion
 from .network_configuration import NetworkConfiguration, Nic, NicType
-from .packages import LocalPackage, PackageSearch, PackageSearchResult, Repository
+from .packages import LocalPackage, PackageSearch, PackageSearchResult
 from .profile_model import ProfileConfiguration
 from .users import PasswordStrength, User
 
@@ -46,7 +45,6 @@ __all__ = [
 	'BDevice',
 	'BluetoothConfiguration',
 	'Bootloader',
-	'CustomRepository',
 	'DeviceGeometry',
 	'DeviceModification',
 	'DiskEncryption',
@@ -63,8 +61,6 @@ __all__ = [
 	'LvmVolume',
 	'LvmVolumeGroup',
 	'LvmVolumeStatus',
-	'MirrorConfiguration',
-	'MirrorRegion',
 	'ModificationStatus',
 	'NetworkConfiguration',
 	'Nic',
@@ -77,7 +73,6 @@ __all__ = [
 	'PartitionType',
 	'PasswordStrength',
 	'ProfileConfiguration',
-	'Repository',
 	'SectorSize',
 	'Size',
 	'SubvolumeModification',

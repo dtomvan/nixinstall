@@ -18,9 +18,7 @@ from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.bootloader import Bootloader
 from nixinstall.lib.models.device_model import DiskEncryption, DiskLayoutConfiguration
 from nixinstall.lib.models.locale import LocaleConfiguration
-from nixinstall.lib.models.mirrors import MirrorConfiguration
 from nixinstall.lib.models.network_configuration import NetworkConfiguration
-from nixinstall.lib.models.packages import Repository
 from nixinstall.lib.models.profile_model import ProfileConfiguration
 from nixinstall.lib.models.users import Password, User
 from nixinstall.lib.output import debug, error, logger, warn
@@ -54,7 +52,6 @@ class ArchConfig:
 	locale_config: LocaleConfiguration | None = None
 	disk_config: DiskLayoutConfiguration | None = None
 	profile_config: ProfileConfiguration | None = None
-	mirror_config: MirrorConfiguration | None = None
 	network_config: NetworkConfiguration | None = None
 	bootloader: Bootloader = field(default=Bootloader.get_default())
 	uki: bool = False
@@ -114,9 +111,6 @@ class ArchConfig:
 		if self.profile_config:
 			config['profile_config'] = self.profile_config.json()
 
-		if self.mirror_config:
-			config['mirror_config'] = self.mirror_config.json()
-
 		if self.network_config:
 			config['network_config'] = self.network_config.json()
 
@@ -152,16 +146,6 @@ class ArchConfig:
 
 		if profile_config := args_config.get('profile_config', None):
 			arch_config.profile_config = ProfileConfiguration.parse_arg(profile_config)
-
-		if mirror_config := args_config.get('mirror_config', None):
-			backwards_compatible_repo = []
-			if additional_repositories := args_config.get('additional-repositories', []):
-				backwards_compatible_repo = [Repository(r) for r in additional_repositories]
-
-			arch_config.mirror_config = MirrorConfiguration.parse_args(
-				mirror_config,
-				backwards_compatible_repo,
-			)
 
 		if net_config := args_config.get('network_config', None):
 			arch_config.network_config = NetworkConfiguration.parse_arg(net_config)

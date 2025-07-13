@@ -6,7 +6,6 @@ from nixinstall.lib.disk.disk_menu import DiskLayoutConfigurationMenu
 from nixinstall.lib.models.application import ApplicationConfiguration
 from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayoutType, EncryptionType, FilesystemType, PartitionModification
-from nixinstall.lib.packages import list_available_packages
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 
 from .applications.application_menu import ApplicationMenu
@@ -31,7 +30,6 @@ from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
 from .models.mirrors import MirrorConfiguration
 from .models.network_configuration import NetworkConfiguration, NicType
-from .models.packages import Repository
 from .models.profile_model import ProfileConfiguration
 from .models.users import Password, User
 from .output import FormattedOutput
@@ -524,19 +522,9 @@ class GlobalMenu(AbstractMenu[None]):
 		profile_config = ProfileMenu(preset=current_profile).run()
 		return profile_config
 
+	# FIXME: inline this or something
 	def _select_additional_packages(self, preset: list[str]) -> list[str]:
-		config: MirrorConfiguration | None = self._item_group.find_by_key('mirror_config').value
-
-		repositories: set[Repository] = set()
-		if config:
-			repositories = set(config.optional_repositories)
-
-		packages = ask_additional_packages_to_install(
-			preset,
-			repositories=repositories,
-		)
-
-		return packages
+		return ask_additional_packages_to_install(preset)
 
 	def _create_user_account(self, preset: list[User] | None = None) -> list[User]:
 		preset = [] if preset is None else preset
@@ -547,9 +535,6 @@ class GlobalMenu(AbstractMenu[None]):
 		mirror_configuration = MirrorMenu(preset=preset).run()
 
 		if mirror_configuration.optional_repositories:
-			# reset the package list cache in case the repository selection has changed
-			list_available_packages.cache_clear()
-
 			# enable the repositories in the config
 			pacman_config = PacmanConfig(None)
 			pacman_config.enable(mirror_configuration.optional_repositories)

@@ -116,7 +116,10 @@ def get_full_config() -> NixosConfig:
 
 	a = NixosConfig()
 	a.begin()
-	a.comment("Please never change this variable, it is the only bit of state the nix code can get, protect it at all costs, foo bar baz, am I at 80 characters yet????")
+	a.comment('''\
+Please never change this variable, it is the only bit of state the nix code can get,\
+ protect it at all costs, foo bar baz, am I at 80 characters yet????\
+''')
 	a.install(['nh', 'btop'])
 	a.set("system.stateVersion", "25.05")
 	a.set("time.timeZone", "Europe/Amsterdam")

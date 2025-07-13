@@ -33,6 +33,7 @@
             pyparted
             pydantic
             cryptography
+            pytest
             pkgs.makeBinaryWrapper
           ];
 
@@ -51,7 +52,7 @@
           ];
 
           devInputs = with pkgs; [
-            python
+            (python.withPackages (_: pythonPackages))
             python.pkgs.ipython
 
             bandit
@@ -100,9 +101,7 @@
               mkCheck =
                 tool: args:
                 pkgs.runCommand "nixinstall-${tool}-check" {
-                  nativeBuildInputs = devInputs ++ [
-                    (python.withPackages (_: pythonPackages))
-                  ];
+                  nativeBuildInputs = devInputs;
                 } "cd ${./.}; ${tool} ${args}";
             in
             pkgs.lib.mapAttrs mkCheck {

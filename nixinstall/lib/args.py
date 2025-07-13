@@ -24,7 +24,6 @@ from nixinstall.lib.models.packages import Repository
 from nixinstall.lib.models.profile_model import ProfileConfiguration
 from nixinstall.lib.models.users import Password, User
 from nixinstall.lib.output import debug, error, logger, warn
-from nixinstall.lib.plugins import load_plugin
 from nixinstall.lib.utils.util import get_password
 from nixinstall.tui.curses_menu import Tui
 
@@ -43,7 +42,6 @@ class Arguments:
 	debug: bool = False
 	offline: bool = False
 	no_pkg_lookups: bool = False
-	plugin: str | None = None
 	skip_version_check: bool = False
 	advanced: bool = False
 	verbose: bool = False
@@ -354,13 +352,6 @@ class ArchConfigHandler:
 			help='Disabled package validation specifically prior to starting installation.',
 		)
 		parser.add_argument(
-			'--plugin',
-			nargs='?',
-			type=str,
-			default=None,
-			help='File path to a plugin to load',
-		)
-		parser.add_argument(
 			'--advanced',
 			action='store_true',
 			default=False,
@@ -386,10 +377,6 @@ class ArchConfigHandler:
 
 		if args.debug:
 			warn(f'Warning: --debug mode will write certain credentials to {logger.path}!')
-
-		if args.plugin:
-			plugin_path = Path(args.plugin)
-			load_plugin(plugin_path)
 
 		if args.creds_decryption_key is None:
 			if os.environ.get('ARCHINSTALL_CREDS_DECRYPTION_KEY'):

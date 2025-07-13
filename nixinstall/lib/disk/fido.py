@@ -37,7 +37,10 @@ class Fido2:
 			fido_devices = clear_vt100_escape_codes_from_str(ret)
 
 			for line in fido_devices.split('\r\n'):
-				path, details = line.replace(',', '').split(':', maxsplit=1)
+				res = line.replace(',', '').split(':', maxsplit=1)
+				if len(res) < 2:
+					continue
+				path, details = res
 				_, product, manufacturer = details.strip().split(' ', maxsplit=2)
 
 				cls._u2f_devices.append(Fido2Device(Path(path.strip()), manufacturer.strip(), product.strip().split('=')[1]))

@@ -50,6 +50,7 @@
             nixos-install-tools
             nixos-enter
             nixfmt-rfc-style
+            libfido2
           ];
 
           devInputs = with pkgs; [

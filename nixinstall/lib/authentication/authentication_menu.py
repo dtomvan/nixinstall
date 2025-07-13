@@ -3,7 +3,7 @@ from typing import override
 from nixinstall.lib.disk.fido import Fido2
 from nixinstall.lib.menu.abstract_menu import AbstractSubMenu
 from nixinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
-from nixinstall.tui.curses_menu import SelectMenu
+from nixinstall.tui.curses_menu import SelectMenu, Tui
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
 from nixinstall.tui.types import Alignment, FrameProperties, Orientation
@@ -15,6 +15,11 @@ class AuthenticationMenu(AbstractSubMenu[AuthenticationConfiguration]):
 			self._auth_config = preset
 		else:
 			self._auth_config = AuthenticationConfiguration()
+
+		if not self._depends_on_u2f():
+			# TODO: this message actually doesn't get displayed, how to do that?
+			Tui.print("No fido2 devices found, skipping")
+			return
 
 		menu_optioons = self._define_menu_options()
 		self._item_group = MenuItemGroup(menu_optioons, checkmarks=True)
@@ -44,7 +49,7 @@ class AuthenticationMenu(AbstractSubMenu[AuthenticationConfiguration]):
 
 	def _depends_on_u2f(self) -> bool:
 		devices = Fido2.get_fido2_devices()
-		if not devices:
+		if not devices or len(devices) == 0:
 			return False
 		return True
 

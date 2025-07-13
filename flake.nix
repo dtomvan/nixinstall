@@ -65,6 +65,8 @@
           ];
 
           dependencies = pythonPackages ++ buildInputs;
+
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
         in
         {
           packages.default = python.pkgs.buildPythonApplication {
@@ -79,21 +81,20 @@
               setuptools
             ];
 
-            inherit dependencies;
+            # this is a bit of a hack, sadly required so pytestCheckHook can
+            # work inside the sandbox due to the runtime loading
+            inherit dependencies LD_LIBRARY_PATH;
 
             postInstall = ''
               wrapProgram $out/bin/nixinstall \
                 --prefix PATH : "${pkgs.lib.makeBinPath runtimeInputs}" \
-                --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath buildInputs}"
+                --prefix LD_LIBRARY_PATH : "${LD_LIBRARY_PATH}"
             '';
 
-            doInstallCheck = true;
-            installCheckPhase = ''
-              runHook preInstallCheck
-                source ${pkgs.versionCheckHook}/nix-support/setup-hook
-                versionCheckHook
-              runHook postInstallCheck
-            '';
+            nativeCheckInputs = [
+              python.pkgs.pytestCheckHook
+              pkgs.versionCheckHook
+            ];
           };
 
           checks =

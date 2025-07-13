@@ -49,6 +49,7 @@
             # TODO: probably more
             nixos-install-tools
             nixos-enter
+            nixfmt-rfc-style
           ];
 
           devInputs = with pkgs; [
@@ -65,8 +66,6 @@
           ];
 
           dependencies = pythonPackages ++ buildInputs;
-
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
         in
         {
           packages.default = python.pkgs.buildPythonApplication {
@@ -81,14 +80,19 @@
               setuptools
             ];
 
-            # this is a bit of a hack, sadly required so pytestCheckHook can
-            # work inside the sandbox due to the runtime loading
-            inherit dependencies LD_LIBRARY_PATH;
+            inherit dependencies;
 
             postInstall = ''
               wrapProgram $out/bin/nixinstall \
                 --prefix PATH : "${pkgs.lib.makeBinPath runtimeInputs}" \
-                --prefix LD_LIBRARY_PATH : "${LD_LIBRARY_PATH}"
+                --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath buildInputs}"
+            '';
+
+            # this is a bit of a hack, sadly required so pytestCheckHook can
+            # work inside the sandbox due to the runtime loading
+            preCheck = ''
+              export PATH="${pkgs.lib.makeBinPath runtimeInputs}:$PATH"
+              export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath buildInputs}:$PATH"
             '';
 
             nativeCheckInputs = [

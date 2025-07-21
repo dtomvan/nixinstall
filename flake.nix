@@ -177,6 +177,7 @@
 
                 isoImage = {
                   edition = lib.mkForce "nixinstall";
+                  squashfsCompression = "gzip -Xcompression-level 1";
                 };
               }
             )

@@ -103,6 +103,5 @@ class DesktopProfile(Profile):
 			info(f'Installing profile {profile.name}...')
 
 			install_session.add_additional_packages(profile.packages)
-			install_session.enable_service(profile.services)
 
 			profile.install(install_session)

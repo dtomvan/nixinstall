@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, override
 from nixinstall.default_profiles.profile import Profile, ProfileType
 
 if TYPE_CHECKING:
-	from nixinstall.lib.installer import Installer
+	pass
 
 
 class MariadbProfile(Profile):
@@ -22,7 +22,3 @@ class MariadbProfile(Profile):
 	@override
 	def services(self) -> list[str]:
 		return ['mariadb']
-
-	@override
-	def post_install(self, install_session: 'Installer') -> None:
-		install_session.arch_chroot('mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql')

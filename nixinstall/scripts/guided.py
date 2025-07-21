@@ -85,7 +85,7 @@ def perform_installation(mountpoint: Path) -> None:
 			installation.setup_swap('zram')
 
 		if config.bootloader == Bootloader.Grub and SysInfo.has_uefi():
-			installation.add_additional_packages('grub')
+			installation.add_additional_package('grub')
 
 		installation.add_bootloader(config.bootloader, config.uki)
 
@@ -130,10 +130,9 @@ def perform_installation(mountpoint: Path) -> None:
 		if (profile_config := config.profile_config) and profile_config.profile:
 			profile_config.profile.post_install(installation)
 
-		# If the user provided a list of services to be enabled, pass the list to the enable_service function.
-		# Note that while it's called enable_service, it can actually take a list of services and iterate it.
-		if servies := config.services:
-			installation.enable_service(servies)
+		if _services := config.services:
+			# TODO: enable services
+			pass
 
 		if disk_config.is_default_btrfs():
 			btrfs_options = disk_config.btrfs_options
@@ -161,7 +160,8 @@ def perform_installation(mountpoint: Path) -> None:
 					os.system('reboot')
 				case PostInstallationAction.CHROOT:
 					try:
-						installation.drop_to_shell()
+						error("post-installation action CHROOT not implemented yet")
+						# TODO: nixos-enter
 					except Exception:
 						pass
 

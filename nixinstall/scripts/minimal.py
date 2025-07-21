@@ -33,7 +33,7 @@ def perform_installation(mountpoint: Path) -> None:
 		# some other minor details as specified by this profile and user.
 		installation.mount_ordered_layout()
 		installation.minimal_installation()
-		installation.set_hostname('minimal-arch')
+		installation.set_hostname('minimal-nixos')
 		installation.add_bootloader(Bootloader.Systemd)
 
 		network_config = config.network_config

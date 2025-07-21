@@ -140,18 +140,14 @@ class NetworkConfiguration:
 	) -> None:
 		match self.type:
 			case NicType.ISO:
-				installation.copy_iso_network_config(
-					enable_services=True,  # Sources the ISO network configuration to the install medium.
-				)
+				installation.copy_iso_network_config()
 			case NicType.NM:
-				installation.add_additional_packages(['networkmanager'])
+				installation.add_additional_package('networkmanager')
 				if profile_config and profile_config.profile:
 					if profile_config.profile.is_desktop_profile():
-						installation.add_additional_packages(['network-manager-applet'])
-				installation.enable_service('NetworkManager.service')
+						installation.add_additional_package('network-manager-applet')
 			case NicType.MANUAL:
 				for nic in self.nics:
 					installation.configure_nic(nic)
 
-				installation.enable_service('systemd-networkd')
-				installation.enable_service('systemd-resolved')
+				# TODO: systemd-networkd

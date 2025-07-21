@@ -41,19 +41,6 @@ class AudioApp:
 			service_dir = install_session.target / 'home' / user.username / '.config' / 'systemd' / 'user' / 'default.target.wants'
 			service_dir.mkdir(parents=True, exist_ok=True)
 
-			# Set ownership of the entire user catalogue
-			install_session.arch_chroot(f'chown -R {user.username}:{user.username} /home/{user.username}')
-
-			# symlink in the correct pipewire systemd items
-			install_session.arch_chroot(
-				f'ln -sf /usr/lib/systemd/user/pipewire-pulse.service /home/{user.username}/.config/systemd/user/default.target.wants/pipewire-pulse.service',
-				run_as=user.username,
-			)
-			install_session.arch_chroot(
-				f'ln -sf /usr/lib/systemd/user/pipewire-pulse.socket /home/{user.username}/.config/systemd/user/default.target.wants/pipewire-pulse.socket',
-				run_as=user.username,
-			)
-
 	def install(
 		self,
 		install_session: 'Installer',
@@ -67,10 +54,10 @@ class AudioApp:
 			return
 
 		if SysInfo.requires_sof_fw():
-			install_session.add_additional_packages('sof-firmware')
+			install_session.add_additional_package('sof-firmware')
 
 		if SysInfo.requires_alsa_fw():
-			install_session.add_additional_packages('alsa-firmware')
+			install_session.add_additional_package('alsa-firmware')
 
 		match audio_config.audio:
 			case Audio.PIPEWIRE:

@@ -10,7 +10,6 @@ from nixinstall.lib.disk.utils import disk_layouts
 
 from .lib.hardware import SysInfo
 from .lib.output import FormattedOutput, debug, error, info, log, warn
-from .lib.pacman import Pacman
 from .tui.curses_menu import Tui
 
 
@@ -81,7 +80,6 @@ def run_as_a_module() -> None:
 
 __all__ = [
 	'FormattedOutput',
-	'Pacman',
 	'SysInfo',
 	'Tui',
 	'debug',

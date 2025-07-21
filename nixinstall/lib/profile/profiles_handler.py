@@ -201,7 +201,8 @@ class ProfileHandler:
 		if packages:
 			install_session.add_additional_packages(packages)
 		if service:
-			install_session.enable_service(service)
+			pass
+			# install_session.enable_service(service)
 
 		# slick-greeter requires a config change
 		if greeter == GreeterType.LightdmSlick:

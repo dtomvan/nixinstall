@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, override
 from nixinstall.default_profiles.profile import Profile, ProfileType
 
 if TYPE_CHECKING:
-	from nixinstall.lib.installer import Installer
+	pass
 
 
 class PostgresqlProfile(Profile):
@@ -22,7 +22,3 @@ class PostgresqlProfile(Profile):
 	@override
 	def services(self) -> list[str]:
 		return ['postgresql']
-
-	@override
-	def post_install(self, install_session: 'Installer') -> None:
-		install_session.arch_chroot('initdb -D /var/lib/postgres/data', run_as='postgres')

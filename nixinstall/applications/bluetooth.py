@@ -23,4 +23,3 @@ class BluetoothApp:
 	def install(self, install_session: 'Installer') -> None:
 		debug('Installing Bluetooth')
 		install_session.add_additional_packages(self.packages)
-		install_session.enable_service(self.services)

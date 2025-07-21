@@ -80,7 +80,7 @@ class AuthenticationHandler:
 	) -> None:
 		debug(f'Setting up U2F login: {u2f_config.u2f_login_method.value}')
 
-		install_session.pacman.strap('pam-u2f')
+		install_session.add_additional_package('pam-u2f')
 
 		Tui.print(f'Setting up U2F login: {u2f_config.u2f_login_method.value}')
 

@@ -1,9 +1,7 @@
 import glob
 import os
 import re
-import shlex
 import shutil
-import subprocess
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -29,8 +27,7 @@ from nixinstall.lib.models.device_model import (
 )
 from nixinstall.tui.curses_menu import Tui
 
-from .args import nixos_config_handler
-from .exceptions import DiskError, HardwareIncompatibilityError, RequirementError, ServiceException, SysCallError
+from .exceptions import DiskError, RequirementError, SysCallError
 from .general import SysCommand, run
 from .hardware import SysInfo
 from .luks import Luks2
@@ -39,7 +36,6 @@ from .models.locale import LocaleConfiguration
 from .models.network_configuration import Nic
 from .models.users import User
 from .output import debug, error, info, log, logger, warn
-from .pacman import Pacman
 from .storage import storage
 
 # Any package that the Installer() is responsible for (optional and the default ones)
@@ -54,14 +50,14 @@ class Installer:
 		self,
 		target: Path,
 		disk_config: DiskLayoutConfiguration,
-		base_packages: list[str] = [],
+		packages: list[str] = [],
 		kernels: list[str] | None = None,
 	):
 		"""
 		`Installer()` is the wrapper for most basic installation steps.
-		It also wraps :py:func:`~nixinstall.Installer.pacstrap` among other things.
 		"""
-		self._base_packages = base_packages or __packages__[:3]
+		# TODO: remove
+		self._packages = packages or __packages__[:3]
 		self.kernels = kernels or ['linux']
 		self._disk_config = disk_config
 
@@ -76,11 +72,11 @@ class Installer:
 		}
 
 		for kernel in self.kernels:
-			self._base_packages.append(kernel)
+			self._packages.append(kernel)
 
 		# If using accessibility tools in the live environment, append those to the packages list
 		if accessibility_tools_in_use():
-			self._base_packages.extend(__accessibility_packages__)
+			self._packages.extend(__accessibility_packages__)
 
 		self.post_base_install: list[Callable] = []  # type: ignore[type-arg]
 
@@ -110,8 +106,6 @@ class Installer:
 
 		self._zram_enabled = False
 		self._disable_fstrim = False
-
-		self.pacman = Pacman(self.target, nixos_config_handler.args.silent)
 
 	def __enter__(self) -> 'Installer':
 		return self
@@ -555,71 +549,34 @@ class Installer:
 	def activate_time_synchronization(self) -> None:
 		info('Activating systemd-timesyncd for time synchronization using NixOS and ntp.org NTP servers')
 		# TODO: actually fill in the NixOS option
-		self.enable_service('systemd-timesyncd')
+		debug('activate_time_synchronization noop')
 
 	def enable_espeakup(self) -> None:
 		info('Enabling espeakup.service for speech synthesis (accessibility)')
-		self.enable_service('espeakup')
+		# TODO: enable espeakup
+		debug("enable_espeakup noop")
 
 	def enable_periodic_trim(self) -> None:
 		info('Enabling periodic TRIM')
-		# fstrim is owned by util-linux, a dependency of both base and systemd.
-		self.enable_service('fstrim.timer')
+		# fstrim is owned by util-linux
+		# TODO: enable services.fstrim.enable (true by default in NixOS)
+		debug('enable_periodic_trim noop')
 
-	def enable_service(self, services: str | list[str]) -> None:
-		if isinstance(services, str):
-			services = [services]
-
-		for service in services:
-			info(f'Enabling service {service}')
-
-			try:
-				self.arch_chroot(f'systemctl enable {service}')
-			except SysCallError as err:
-				raise ServiceException(f'Unable to start service {service}: {err}')
-
-	def run_command(self, cmd: str, *args: str, **kwargs: str) -> SysCommand:
-		return SysCommand(f'arch-chroot {self.target} {cmd}')
-
-	def arch_chroot(self, cmd: str, run_as: str | None = None) -> SysCommand:
-		if run_as:
-			cmd = f'su - {run_as} -c {shlex.quote(cmd)}'
-
-		return self.run_command(cmd)
-
-	def drop_to_shell(self) -> None:
-		subprocess.check_call(f'arch-chroot {self.target}', shell=True)
-
+	# TODO: move to NetworkManager config
 	def configure_nic(self, nic: Nic) -> None:
 		conf = nic.as_systemd_config()
 
 		with open(f'{self.target}/etc/systemd/network/10-{nic.iface}.network', 'a') as netconf:
 			netconf.write(str(conf))
 
-	def copy_iso_network_config(self, enable_services: bool = False) -> bool:
+	def copy_iso_network_config(self) -> bool:
 		# Copy (if any) iwd password and config files
 		if os.path.isdir('/var/lib/iwd/'):
 			if psk_files := glob.glob('/var/lib/iwd/*.psk'):
 				if not os.path.isdir(f'{self.target}/var/lib/iwd'):
 					os.makedirs(f'{self.target}/var/lib/iwd')
 
-				if enable_services:
-					# If we haven't installed the base yet (function called pre-maturely)
-					if self._helper_flags.get('base', False) is False:
-						self._base_packages.append('iwd')
-
-						# This function will be called after minimal_installation()
-						# as a hook for post-installs. This hook is only needed if
-						# base is not installed yet.
-						def post_install_enable_iwd_service(*args: str, **kwargs: str) -> None:
-							self.enable_service('iwd')
-
-						self.post_base_install.append(post_install_enable_iwd_service)
-					# Otherwise, we can go ahead and add the required package
-					# and enable it's service:
-					else:
-						self.pacman.strap('iwd')
-						self.enable_service('iwd')
+				self._packages.append('iwd')
 
 				for psk in psk_files:
 					shutil.copy2(psk, f'{self.target}/var/lib/iwd/{os.path.basename(psk)}')
@@ -631,18 +588,6 @@ class Installer:
 
 			for netconf_file in netconfigurations:
 				shutil.copy2(netconf_file, f'{self.target}/etc/systemd/network/{os.path.basename(netconf_file)}')
-
-			if enable_services:
-				# If we haven't installed the base yet (function called pre-maturely)
-				if self._helper_flags.get('base', False) is False:
-
-					def post_install_enable_networkd_resolved(*args: str, **kwargs: str) -> None:
-						self.enable_service(['systemd-networkd', 'systemd-resolved'])
-
-					self.post_base_install.append(post_install_enable_networkd_resolved)
-				# Otherwise, we can go ahead and enable the services
-				else:
-					self.enable_service(['systemd-networkd', 'systemd-resolved'])
 
 		return True
 
@@ -685,7 +630,7 @@ class Installer:
 		mountpoint: Path | None,
 	) -> None:
 		if (pkg := fs_type.installation_pkg) is not None:
-			self._base_packages.append(pkg)
+			self._packages.append(pkg)
 		if (module := fs_type.installation_module) is not None:
 			self._modules.append(module)
 		if (binary := fs_type.installation_binary) is not None:
@@ -703,7 +648,7 @@ class Installer:
 	def _prepare_encrypt(self, before: str = 'filesystems') -> None:
 		if self._disk_encryption.hsm_device:
 			# Required by mkinitcpio to add support for fido2-device options
-			self.pacman.strap('libfido2')
+			self._packages.append('libfido2')
 
 			if 'sd-encrypt' not in self._hooks:
 				self._hooks.insert(self._hooks.index(before), 'sd-encrypt')
@@ -719,7 +664,7 @@ class Installer:
 	) -> None:
 		if self._disk_config.lvm_config:
 			lvm = 'lvm2'
-			self.add_additional_packages(lvm)
+			self._packages.append(lvm)
 			self._hooks.insert(self._hooks.index('filesystems') - 1, lvm)
 
 			for vg in self._disk_config.lvm_config.vol_groups:
@@ -743,11 +688,10 @@ class Installer:
 
 		if ucode := self._get_microcode():
 			(self.target / 'boot' / ucode).unlink(missing_ok=True)
-			self._base_packages.append(ucode.stem)
+			self._packages.append(ucode.stem)
 		else:
 			debug('nixinstall will not install any ucode.')
 
-		self.pacman.strap(self._base_packages)
 		self._helper_flags['base-strapped'] = True
 
 		# Periodic TRIM may improve the performance and longevity of SSDs whilst
@@ -787,58 +731,14 @@ class Installer:
 	) -> None:
 		if snapshot_type == SnapshotType.Snapper:
 			debug('Setting up Btrfs snapper')
-			self.pacman.strap('snapper')
-
-			snapper: dict[str, str] = {
-				'root': '/',
-				'home': '/home',
-			}
-
-			for config_name, mountpoint in snapper.items():
-				command = [
-					'arch-chroot',
-					str(self.target),
-					'snapper',
-					'--no-dbus',
-					'-c',
-					config_name,
-					'create-config',
-					mountpoint,
-				]
-
-				try:
-					SysCommand(command, peek_output=True)
-				except SysCallError as err:
-					raise DiskError(f'Could not setup Btrfs snapper: {err}')
-
-			self.enable_service('snapper-timeline.timer')
-			self.enable_service('snapper-cleanup.timer')
+			# TODO: services.snapper.configs
 		elif snapshot_type == SnapshotType.Timeshift:
 			debug('Setting up Btrfs timeshift')
-
-			self.pacman.strap('cronie')
-			self.pacman.strap('timeshift')
-
-			self.enable_service('cronie.service')
-
-			if bootloader and bootloader == Bootloader.Grub:
-				self.pacman.strap('grub-btrfs')
-				self.pacman.strap('inotify-tools')
-				self.enable_service('grub-btrfsd.service')
+			# TODO: add timeshift timer
 
 	def setup_swap(self, kind: str = 'zram') -> None:
 		if kind == 'zram':
-			info('Setting up swap on zram')
-			self.pacman.strap('zram-generator')
-
-			# We could use the default example below, but maybe not the best idea: https://github.com/archlinux/archinstall/pull/678#issuecomment-962124813
-			# zram_example_location = '/usr/share/doc/zram-generator/zram-generator.conf.example'
-			# shutil.copy2(f"{self.target}{zram_example_location}", f"{self.target}/usr/lib/systemd/zram-generator.conf")
-			with open(f'{self.target}/etc/systemd/zram-generator.conf', 'w') as zram_conf:
-				zram_conf.write('[zram0]\n')
-
-			self.enable_service('systemd-zram-setup@zram0.service')
-
+			# TODO: zramSwap.enable
 			self._zram_enabled = True
 		else:
 			raise ValueError('nixinstall currently only supports setting up swap on zram')
@@ -999,77 +899,78 @@ class Installer:
 	) -> None:
 		debug('Installing systemd bootloader')
 
-		self.pacman.strap('efibootmgr')
+		# TODO: implement systemd-bootd
+		error("systemd bootloader not implemented yet")
 
-		if not SysInfo.has_uefi():
-			raise HardwareIncompatibilityError
+		# if not SysInfo.has_uefi():
+		# 	raise HardwareIncompatibilityError
 
-		if not efi_partition:
-			raise ValueError('Could not detect EFI system partition')
-		elif not efi_partition.mountpoint:
-			raise ValueError('EFI system partition is not mounted')
+		# if not efi_partition:
+		# 	raise ValueError('Could not detect EFI system partition')
+		# elif not efi_partition.mountpoint:
+		# 	raise ValueError('EFI system partition is not mounted')
 
-		# TODO: Ideally we would want to check if another config
-		# points towards the same disk and/or partition.
-		# And in which case we should do some clean up.
-		bootctl_options = []
+		# # TODO: Ideally we would want to check if another config
+		# # points towards the same disk and/or partition.
+		# # And in which case we should do some clean up.
+		# bootctl_options = []
 
-		if boot_partition != efi_partition:
-			bootctl_options.append(f'--esp-path={efi_partition.mountpoint}')
-			bootctl_options.append(f'--boot-path={boot_partition.mountpoint}')
+		# if boot_partition != efi_partition:
+		# 	bootctl_options.append(f'--esp-path={efi_partition.mountpoint}')
+		# 	bootctl_options.append(f'--boot-path={boot_partition.mountpoint}')
 
-		# TODO: Remove this line after 258 hits nixpkgs 25.05/25.11
-		systemd_version = 257  # This works as a safety workaround for this hot-fix
+		# # TODO: Remove this line after 258 hits nixpkgs 25.05/25.11
+		# systemd_version = 257  # This works as a safety workaround for this hot-fix
 
-		# Install the boot loader
-		try:
-			# Force EFI variables since bootctl detects arch-chroot
-			# as a container environemnt since v257 and skips them silently.
-			# https://github.com/systemd/systemd/issues/36174
-			if systemd_version >= 258:
-				SysCommand(f'arch-chroot {self.target} bootctl --variables=yes {" ".join(bootctl_options)} install')
-			else:
-				SysCommand(f'arch-chroot {self.target} bootctl {" ".join(bootctl_options)} install')
-		except SysCallError:
-			if systemd_version >= 258:
-				# Fallback, try creating the boot loader without touching the EFI variables
-				SysCommand(f'arch-chroot {self.target} bootctl --variables=no {" ".join(bootctl_options)} install')
-			else:
-				SysCommand(f'arch-chroot {self.target} bootctl --no-variables {" ".join(bootctl_options)} install')
+		# # Install the boot loader
+		# try:
+		# 	# Force EFI variables since bootctl detects arch-chroot
+		# 	# as a container environemnt since v257 and skips them silently.
+		# 	# https://github.com/systemd/systemd/issues/36174
+		# 	if systemd_version >= 258:
+		# 		SysCommand(f'arch-chroot {self.target} bootctl --variables=yes {" ".join(bootctl_options)} install')
+		# 	else:
+		# 		SysCommand(f'arch-chroot {self.target} bootctl {" ".join(bootctl_options)} install')
+		# except SysCallError:
+		# 	if systemd_version >= 258:
+		# 		# Fallback, try creating the boot loader without touching the EFI variables
+		# 		SysCommand(f'arch-chroot {self.target} bootctl --variables=no {" ".join(bootctl_options)} install')
+		# 	else:
+		# 		SysCommand(f'arch-chroot {self.target} bootctl --no-variables {" ".join(bootctl_options)} install')
 
-		# Loader configuration is stored in ESP/loader:
-		# https://man.archlinux.org/man/loader.conf.5
-		loader_conf = self.target / efi_partition.relative_mountpoint / 'loader/loader.conf'
-		# Ensure that the ESP/loader/ directory exists before trying to create a file in it
-		loader_conf.parent.mkdir(parents=True, exist_ok=True)
+		# # Loader configuration is stored in ESP/loader:
+		# # https://man.archlinux.org/man/loader.conf.5
+		# loader_conf = self.target / efi_partition.relative_mountpoint / 'loader/loader.conf'
+		# # Ensure that the ESP/loader/ directory exists before trying to create a file in it
+		# loader_conf.parent.mkdir(parents=True, exist_ok=True)
 
-		default_kernel = self.kernels[0]
-		if uki_enabled:
-			default_entry = f'arch-{default_kernel}.efi'
-		else:
-			entry_name = self.init_time + '_{kernel}{variant}.conf'
-			default_entry = entry_name.format(kernel=default_kernel, variant='')
-			self._create_bls_entries(boot_partition, root, entry_name)
+		# default_kernel = self.kernels[0]
+		# if uki_enabled:
+		# 	default_entry = f'arch-{default_kernel}.efi'
+		# else:
+		# 	entry_name = self.init_time + '_{kernel}{variant}.conf'
+		# 	default_entry = entry_name.format(kernel=default_kernel, variant='')
+		# 	self._create_bls_entries(boot_partition, root, entry_name)
 
-		default = f'default {default_entry}'
+		# default = f'default {default_entry}'
 
-		# Modify or create a loader.conf
-		try:
-			loader_data = loader_conf.read_text().splitlines()
-		except FileNotFoundError:
-			loader_data = [
-				default,
-				'timeout 15',
-			]
-		else:
-			for index, line in enumerate(loader_data):
-				if line.startswith('default'):
-					loader_data[index] = default
-				elif line.startswith('#timeout'):
-					# We add in the default timeout to support dual-boot
-					loader_data[index] = line.removeprefix('#')
+		# # Modify or create a loader.conf
+		# try:
+		# 	loader_data = loader_conf.read_text().splitlines()
+		# except FileNotFoundError:
+		# 	loader_data = [
+		# 		default,
+		# 		'timeout 15',
+		# 	]
+		# else:
+		# 	for index, line in enumerate(loader_data):
+		# 		if line.startswith('default'):
+		# 			loader_data[index] = default
+		# 		elif line.startswith('#timeout'):
+		# 			# We add in the default timeout to support dual-boot
+		# 			loader_data[index] = line.removeprefix('#')
 
-		loader_conf.write_text('\n'.join(loader_data) + '\n')
+		# loader_conf.write_text('\n'.join(loader_data) + '\n')
 
 		self._helper_flags['bootloader'] = 'systemd'
 
@@ -1191,8 +1092,15 @@ class Installer:
 			case Bootloader.Limine:
 				self._add_limine_bootloader(boot_partition, efi_partition, root, uki_enabled)
 
-	def add_additional_packages(self, packages: str | list[str]) -> None:
-		return self.pacman.strap(packages)
+	def add_additional_package(self, packages: str) -> None:
+		self._packages.append(packages)
+
+	def add_additional_packages(self, packages: list[str]) -> None:
+		for package in packages:
+			self.add_additional_package(package)
+
+	def add_additional_option(self, key: str, value: Any) -> None:
+		error("add_additional_option not implemented yet")
 
 	def enable_sudo(self, user: User, group: bool = False) -> None:
 		info(f'Enabling sudo permissions for {user.username}')

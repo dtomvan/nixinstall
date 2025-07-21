@@ -3,7 +3,7 @@ from pathlib import Path
 
 from nixinstall import SysInfo
 from nixinstall.lib.applications.application_handler import application_handler
-from nixinstall.lib.args import arch_config_handler
+from nixinstall.lib.args import nixos_config_handler
 from nixinstall.lib.authentication.authentication_handler import auth_handler
 from nixinstall.lib.configuration import ConfigurationOutput
 from nixinstall.lib.disk.filesystem import FilesystemHandler
@@ -32,9 +32,9 @@ def ask_user_questions() -> None:
 	title_text = None
 
 	with Tui():
-		global_menu = GlobalMenu(arch_config_handler.config)
+		global_menu = GlobalMenu(nixos_config_handler.config)
 
-		if not arch_config_handler.args.advanced:
+		if not nixos_config_handler.args.advanced:
 			global_menu.set_enabled('parallel_downloads', False)
 
 		global_menu.run(additional_title=title_text)
@@ -48,7 +48,7 @@ def perform_installation(mountpoint: Path) -> None:
 	"""
 	info('Starting installation...')
 
-	config = arch_config_handler.config
+	config = nixos_config_handler.config
 
 	if not config.disk_config:
 		error('No disk configuration provided')
@@ -77,7 +77,7 @@ def perform_installation(mountpoint: Path) -> None:
 
 		installation.minimal_installation(
 			mkinitcpio=run_mkinitcpio,
-			hostname=arch_config_handler.config.hostname,
+			hostname=nixos_config_handler.config.hostname,
 			locale_config=locale_config,
 		)
 
@@ -150,7 +150,7 @@ def perform_installation(mountpoint: Path) -> None:
 
 		debug(f'Disk states after installing:\n{disk_layouts()}')
 
-		if not arch_config_handler.args.silent:
+		if not nixos_config_handler.args.silent:
 			with Tui():
 				action = ask_post_installation()
 
@@ -167,17 +167,17 @@ def perform_installation(mountpoint: Path) -> None:
 
 
 def guided() -> None:
-	if not arch_config_handler.args.silent:
+	if not nixos_config_handler.args.silent:
 		ask_user_questions()
 
-	config = ConfigurationOutput(arch_config_handler.config)
+	config = ConfigurationOutput(nixos_config_handler.config)
 	config.write_debug()
 	config.save()
 
-	if arch_config_handler.args.dry_run:
+	if nixos_config_handler.args.dry_run:
 		exit(0)
 
-	if not arch_config_handler.args.silent:
+	if not nixos_config_handler.args.silent:
 		aborted = False
 		with Tui():
 			if not config.confirm_config():
@@ -187,11 +187,11 @@ def guided() -> None:
 		if aborted:
 			return guided()
 
-	if arch_config_handler.config.disk_config:
-		fs_handler = FilesystemHandler(arch_config_handler.config.disk_config)
+	if nixos_config_handler.config.disk_config:
+		fs_handler = FilesystemHandler(nixos_config_handler.config.disk_config)
 		fs_handler.perform_filesystem_operations()
 
-	perform_installation(arch_config_handler.args.mountpoint)
+	perform_installation(nixos_config_handler.args.mountpoint)
 
 
 guided()

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from nixinstall.lib.args import arch_config_handler
+from nixinstall.lib.args import nixos_config_handler
 from nixinstall.lib.disk.device_handler import device_handler
 from nixinstall.lib.disk.partitioning_menu import manual_partitioning
 from nixinstall.lib.menu.menu_helper import MenuHelper
@@ -248,7 +248,7 @@ def select_main_filesystem_format() -> FilesystemType:
 		MenuItem('f2fs', value=FilesystemType.F2fs),
 	]
 
-	if arch_config_handler.args.advanced:
+	if nixos_config_handler.args.advanced:
 		items.append(MenuItem('ntfs', value=FilesystemType.Ntfs))
 
 	group = MenuItemGroup(items, sort_items=False)

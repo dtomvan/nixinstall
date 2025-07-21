@@ -29,7 +29,7 @@ from nixinstall.lib.models.device_model import (
 )
 from nixinstall.tui.curses_menu import Tui
 
-from .args import arch_config_handler
+from .args import nixos_config_handler
 from .exceptions import DiskError, HardwareIncompatibilityError, RequirementError, ServiceException, SysCallError
 from .general import SysCommand, run
 from .hardware import SysInfo
@@ -111,7 +111,7 @@ class Installer:
 		self._zram_enabled = False
 		self._disable_fstrim = False
 
-		self.pacman = Pacman(self.target, arch_config_handler.args.silent)
+		self.pacman = Pacman(self.target, nixos_config_handler.args.silent)
 
 	def __enter__(self) -> 'Installer':
 		return self

@@ -100,9 +100,9 @@ class Profile:
 		Used to control if the Profile() should be visible or not in different contexts.
 		Returns True if --advanced is given on a Profile(advanced=True) instance.
 		"""
-		from nixinstall.lib.args import arch_config_handler
+		from nixinstall.lib.args import nixos_config_handler
 
-		return self.advanced is False or arch_config_handler.args.advanced is True
+		return self.advanced is False or nixos_config_handler.args.advanced is True
 
 	def install(self, install_session: 'Installer') -> None:
 		"""

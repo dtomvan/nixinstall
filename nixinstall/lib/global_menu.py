@@ -9,7 +9,7 @@ from nixinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayo
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 
 from .applications.application_menu import ApplicationMenu
-from .args import ArchConfig
+from .args import NixOSConfig
 from .authentication.authentication_menu import AuthenticationMenu
 from .configuration import save_config
 from .hardware import SysInfo
@@ -35,8 +35,8 @@ from .utils.util import get_password
 
 
 class GlobalMenu(AbstractMenu[None]):
-	def __init__(self, arch_config: ArchConfig) -> None:
-		self._arch_config = arch_config
+	def __init__(self, nixos_config: NixOSConfig) -> None:
+		self._nixos_config = nixos_config
 		menu_optioons = self._get_menu_options()
 
 		self._item_group = MenuItemGroup(
@@ -45,7 +45,7 @@ class GlobalMenu(AbstractMenu[None]):
 			checkmarks=True,
 		)
 
-		super().__init__(self._item_group, config=arch_config)
+		super().__init__(self._item_group, config=nixos_config)
 
 	def _get_menu_options(self) -> list[MenuItem]:
 		return [
@@ -195,7 +195,7 @@ class GlobalMenu(AbstractMenu[None]):
 		# 		data[item.key] = item.value
 
 		self.sync_all_to_config()
-		save_config(self._arch_config)
+		save_config(self._nixos_config)
 
 	def _missing_configs(self) -> list[str]:
 		def check(s: str) -> bool:

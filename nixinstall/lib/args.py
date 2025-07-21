@@ -46,7 +46,7 @@ class Arguments:
 
 
 @dataclass
-class ArchConfig:
+class NixOSConfig:
 	version: str | None = None
 	script: str | None = None
 	locale_config: LocaleConfiguration | None = None
@@ -117,98 +117,99 @@ class ArchConfig:
 		return config
 
 	@classmethod
-	def from_config(cls, args_config: dict[str, Any]) -> 'ArchConfig':
-		arch_config = ArchConfig()
+	def from_config(cls, args_config: dict[str, Any]) -> 'NixOSConfig':
+		nixos_config = NixOSConfig()
 
-		arch_config.locale_config = LocaleConfiguration.parse_arg(args_config)
+		nixos_config.locale_config = LocaleConfiguration.parse_arg(args_config)
 
 		if script := args_config.get('script', None):
-			arch_config.script = script
+			nixos_config.script = script
 
 		if disk_config := args_config.get('disk_config', {}):
 			enc_password = args_config.get('encryption_password', '')
 			password = Password(plaintext=enc_password) if enc_password else None
-			arch_config.disk_config = DiskLayoutConfiguration.parse_arg(disk_config, password)
+			nixos_config.disk_config = DiskLayoutConfiguration.parse_arg(disk_config, password)
 
+			# TODO: remove backwards compatibility with arch config like these
 			# DEPRECATED
 			# backwards compatibility for main level disk_encryption entry
 			disk_encryption: DiskEncryption | None = None
 
-			if args_config.get('disk_encryption', None) is not None and arch_config.disk_config is not None:
+			if args_config.get('disk_encryption', None) is not None and nixos_config.disk_config is not None:
 				disk_encryption = DiskEncryption.parse_arg(
-					arch_config.disk_config,
+					nixos_config.disk_config,
 					args_config['disk_encryption'],
 					Password(plaintext=args_config.get('encryption_password', '')),
 				)
 
 				if disk_encryption:
-					arch_config.disk_config.disk_encryption = disk_encryption
+					nixos_config.disk_config.disk_encryption = disk_encryption
 
 		if profile_config := args_config.get('profile_config', None):
-			arch_config.profile_config = ProfileConfiguration.parse_arg(profile_config)
+			nixos_config.profile_config = ProfileConfiguration.parse_arg(profile_config)
 
 		if net_config := args_config.get('network_config', None):
-			arch_config.network_config = NetworkConfiguration.parse_arg(net_config)
+			nixos_config.network_config = NetworkConfiguration.parse_arg(net_config)
 
 		# DEPRECATED: backwards copatibility
 		if users := args_config.get('!users', None):
-			arch_config.users = User.parse_arguments(users)
+			nixos_config.users = User.parse_arguments(users)
 
 		if users := args_config.get('users', None):
-			arch_config.users = User.parse_arguments(users)
+			nixos_config.users = User.parse_arguments(users)
 
 		if bootloader_config := args_config.get('bootloader', None):
-			arch_config.bootloader = Bootloader.from_arg(bootloader_config)
+			nixos_config.bootloader = Bootloader.from_arg(bootloader_config)
 
-		if args_config.get('uki') and not arch_config.bootloader.has_uki_support():
-			arch_config.uki = False
+		if args_config.get('uki') and not nixos_config.bootloader.has_uki_support():
+			nixos_config.uki = False
 
 		# deprecated: backwards compatibility
 		audio_config_args = args_config.get('audio_config', None)
 		app_config_args = args_config.get('app_config', None)
 
 		if audio_config_args is not None or app_config_args is not None:
-			arch_config.app_config = ApplicationConfiguration.parse_arg(app_config_args, audio_config_args)
+			nixos_config.app_config = ApplicationConfiguration.parse_arg(app_config_args, audio_config_args)
 
 		if auth_config_args := args_config.get('auth_config', None):
-			arch_config.auth_config = AuthenticationConfiguration.parse_arg(auth_config_args)
+			nixos_config.auth_config = AuthenticationConfiguration.parse_arg(auth_config_args)
 
 		if hostname := args_config.get('hostname', ''):
-			arch_config.hostname = hostname
+			nixos_config.hostname = hostname
 
 		if kernels := args_config.get('kernels', []):
-			arch_config.kernels = kernels
+			nixos_config.kernels = kernels
 
-		arch_config.ntp = args_config.get('ntp', True)
+		nixos_config.ntp = args_config.get('ntp', True)
 
 		if packages := args_config.get('packages', []):
-			arch_config.packages = packages
+			nixos_config.packages = packages
 
 		if parallel_downloads := args_config.get('parallel_downloads', 0):
-			arch_config.parallel_downloads = parallel_downloads
+			nixos_config.parallel_downloads = parallel_downloads
 
-		arch_config.swap = args_config.get('swap', True)
+		nixos_config.swap = args_config.get('swap', True)
 
 		if timezone := args_config.get('timezone', 'UTC'):
-			arch_config.timezone = timezone
+			nixos_config.timezone = timezone
 
 		if services := args_config.get('services', []):
-			arch_config.services = services
+			nixos_config.services = services
 
 		# DEPRECATED: backwards compatibility
 		if root_password := args_config.get('!root-password', None):
-			arch_config.root_enc_password = Password(plaintext=root_password)
+			nixos_config.root_enc_password = Password(plaintext=root_password)
 
 		if enc_password := args_config.get('root_enc_password', None):
-			arch_config.root_enc_password = Password(enc_password=enc_password)
+			nixos_config.root_enc_password = Password(enc_password=enc_password)
 
 		if custom_commands := args_config.get('custom_commands', []):
-			arch_config.custom_commands = custom_commands
+			nixos_config.custom_commands = custom_commands
 
-		return arch_config
+		return nixos_config
 
 
-class ArchConfigHandler:
+class NixOSConfigHandler:
 	def __init__(self) -> None:
 		self._parser: ArgumentParser = self._define_arguments()
 		self._args: Arguments = self._parse_args()
@@ -216,13 +217,13 @@ class ArchConfigHandler:
 		config = self._parse_config()
 
 		try:
-			self._config = ArchConfig.from_config(config)
+			self._config = NixOSConfig.from_config(config)
 		except ValueError as err:
 			warn(str(err))
 			exit(1)
 
 	@property
-	def config(self) -> ArchConfig:
+	def config(self) -> NixOSConfig:
 		return self._config
 
 	@property
@@ -470,4 +471,4 @@ class ArchConfigHandler:
 		return clean_args
 
 
-arch_config_handler: ArchConfigHandler = ArchConfigHandler()
+nixos_config_handler: NixOSConfigHandler = NixOSConfigHandler()

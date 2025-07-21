@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from nixinstall import debug, error
-from nixinstall.lib.args import arch_config_handler
+from nixinstall.lib.args import nixos_config_handler
 from nixinstall.lib.configuration import ConfigurationOutput
 from nixinstall.lib.disk.filesystem import FilesystemHandler
 from nixinstall.lib.disk.utils import disk_layouts
@@ -12,7 +12,7 @@ from nixinstall.tui import Tui
 
 def ask_user_questions() -> None:
 	with Tui():
-		global_menu = GlobalMenu(arch_config_handler.config)
+		global_menu = GlobalMenu(nixos_config_handler.config)
 		global_menu.disable_all()
 
 		global_menu.set_enabled('disk_config', True)
@@ -28,7 +28,7 @@ def perform_installation(mountpoint: Path) -> None:
 	Only requirement is that the block devices are
 	formatted and setup prior to entering this function.
 	"""
-	config = arch_config_handler.config
+	config = nixos_config_handler.config
 
 	if not config.disk_config:
 		error('No disk configuration provided')
@@ -56,17 +56,17 @@ def perform_installation(mountpoint: Path) -> None:
 
 
 def _only_hd() -> None:
-	if not arch_config_handler.args.silent:
+	if not nixos_config_handler.args.silent:
 		ask_user_questions()
 
-	config = ConfigurationOutput(arch_config_handler.config)
+	config = ConfigurationOutput(nixos_config_handler.config)
 	config.write_debug()
 	config.save()
 
-	if arch_config_handler.args.dry_run:
+	if nixos_config_handler.args.dry_run:
 		exit(0)
 
-	if not arch_config_handler.args.silent:
+	if not nixos_config_handler.args.silent:
 		aborted = False
 		with Tui():
 			if not config.confirm_config():
@@ -76,11 +76,11 @@ def _only_hd() -> None:
 		if aborted:
 			return _only_hd()
 
-	if arch_config_handler.config.disk_config:
-		fs_handler = FilesystemHandler(arch_config_handler.config.disk_config)
+	if nixos_config_handler.config.disk_config:
+		fs_handler = FilesystemHandler(nixos_config_handler.config.disk_config)
 		fs_handler.perform_filesystem_operations()
 
-	perform_installation(arch_config_handler.args.mountpoint)
+	perform_installation(nixos_config_handler.args.mountpoint)
 
 
 _only_hd()

@@ -5,7 +5,7 @@ import os
 import sys
 import traceback
 
-from nixinstall.lib.args import arch_config_handler
+from nixinstall.lib.args import nixos_config_handler
 from nixinstall.lib.disk.utils import disk_layouts
 
 from .lib.hardware import SysInfo
@@ -33,7 +33,7 @@ def main() -> int:
 	In any case we will be attempting to load the provided script to be run from the scripts/ folder
 	"""
 	if '--help' in sys.argv or '-h' in sys.argv:
-		arch_config_handler.print_help()
+		nixos_config_handler.print_help()
 		return 0
 
 	if os.getuid() != 0 and '--debug' not in sys.argv:
@@ -42,7 +42,7 @@ def main() -> int:
 
 	_log_sys_info()
 
-	script = arch_config_handler.get_script()
+	script = nixos_config_handler.get_script()
 
 	mod_name = f'nixinstall.scripts.{script}'
 	# by loading the module we'll automatically run the script
@@ -84,7 +84,7 @@ __all__ = [
 	'Pacman',
 	'SysInfo',
 	'Tui',
-	'arch_config_handler',
+	'nixos_config_handler',
 	'debug',
 	'disk_layouts',
 	'error',

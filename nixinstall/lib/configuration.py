@@ -8,7 +8,7 @@ from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.result import ResultType
 from nixinstall.tui.types import Alignment, FrameProperties, Orientation, PreviewStyle
 
-from .args import ArchConfig
+from .args import NixOSConfig
 from .crypt import encrypt
 from .general import JSON, UNSAFE_JSON
 from .output import debug, logger, warn
@@ -16,14 +16,14 @@ from .utils.util import get_password, prompt_dir
 
 
 class ConfigurationOutput:
-	def __init__(self, config: ArchConfig):
+	def __init__(self, config: NixOSConfig):
 		"""
 		Configuration output handler to parse the existing
 		configuration data structure and prepare for output on the
 		console and for saving it to configuration files
 
 		:param config: nixinstall configuration object
-		:type config: ArchConfig
+		:type config: NixOSConfig
 		"""
 
 		self._config = config
@@ -121,7 +121,7 @@ class ConfigurationOutput:
 				self.save_user_creds(save_path, password=password)
 
 
-def save_config(config: ArchConfig) -> None:
+def save_config(config: NixOSConfig) -> None:
 	def preview(item: MenuItem) -> str | None:
 		match item.value:
 			case 'user_config':

@@ -25,7 +25,7 @@ class DockerProfile(Profile):
 
 	@override
 	def post_install(self, install_session: 'Installer') -> None:
-		from nixinstall.lib.args import arch_config_handler
+		from nixinstall.lib.args import nixos_config_handler
 
-		for user in arch_config_handler.config.users:
+		for user in nixos_config_handler.config.users:
 			install_session.arch_chroot(f'usermod -a -G docker {user.username}')

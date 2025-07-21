@@ -23,11 +23,12 @@
 
 
 ## Overig
-Iets dat een nix file samenstelt:
-- Accumulate python dict
-	- Serialize custom?
-- String append in een template?
-- JSON output → json2nix?
+- [ ] Iets dat een nix file samenstelt:
+	- Accumulate python dict
+		- Serialize custom?
+	- String append in een template?
+	- JSON output → json2nix?
+- [ ] CONTRIBUTING.md
 
 
 ## Install procedure

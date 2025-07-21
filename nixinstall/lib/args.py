@@ -16,7 +16,7 @@ from nixinstall.lib.crypt import decrypt
 from nixinstall.lib.models.application import ApplicationConfiguration
 from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.bootloader import Bootloader
-from nixinstall.lib.models.device_model import DiskEncryption, DiskLayoutConfiguration
+from nixinstall.lib.models.device_model import DiskLayoutConfiguration
 from nixinstall.lib.models.locale import LocaleConfiguration
 from nixinstall.lib.models.network_configuration import NetworkConfiguration
 from nixinstall.lib.models.profile_model import ProfileConfiguration
@@ -130,30 +130,11 @@ class NixOSConfig:
 			password = Password(plaintext=enc_password) if enc_password else None
 			nixos_config.disk_config = DiskLayoutConfiguration.parse_arg(disk_config, password)
 
-			# TODO: remove backwards compatibility with arch config like these
-			# DEPRECATED
-			# backwards compatibility for main level disk_encryption entry
-			disk_encryption: DiskEncryption | None = None
-
-			if args_config.get('disk_encryption', None) is not None and nixos_config.disk_config is not None:
-				disk_encryption = DiskEncryption.parse_arg(
-					nixos_config.disk_config,
-					args_config['disk_encryption'],
-					Password(plaintext=args_config.get('encryption_password', '')),
-				)
-
-				if disk_encryption:
-					nixos_config.disk_config.disk_encryption = disk_encryption
-
 		if profile_config := args_config.get('profile_config', None):
 			nixos_config.profile_config = ProfileConfiguration.parse_arg(profile_config)
 
 		if net_config := args_config.get('network_config', None):
 			nixos_config.network_config = NetworkConfiguration.parse_arg(net_config)
-
-		# DEPRECATED: backwards copatibility
-		if users := args_config.get('!users', None):
-			nixos_config.users = User.parse_arguments(users)
 
 		if users := args_config.get('users', None):
 			nixos_config.users = User.parse_arguments(users)
@@ -164,12 +145,10 @@ class NixOSConfig:
 		if args_config.get('uki') and not nixos_config.bootloader.has_uki_support():
 			nixos_config.uki = False
 
-		# deprecated: backwards compatibility
-		audio_config_args = args_config.get('audio_config', None)
 		app_config_args = args_config.get('app_config', None)
 
-		if audio_config_args is not None or app_config_args is not None:
-			nixos_config.app_config = ApplicationConfiguration.parse_arg(app_config_args, audio_config_args)
+		if app_config_args is not None:
+			nixos_config.app_config = ApplicationConfiguration.parse_arg(app_config_args)
 
 		if auth_config_args := args_config.get('auth_config', None):
 			nixos_config.auth_config = AuthenticationConfiguration.parse_arg(auth_config_args)
@@ -195,10 +174,6 @@ class NixOSConfig:
 
 		if services := args_config.get('services', []):
 			nixos_config.services = services
-
-		# DEPRECATED: backwards compatibility
-		if root_password := args_config.get('!root-password', None):
-			nixos_config.root_enc_password = Password(plaintext=root_password)
 
 		if enc_password := args_config.get('root_enc_password', None):
 			nixos_config.root_enc_password = Password(enc_password=enc_password)

@@ -105,7 +105,7 @@ class Installer:
 		self._fstab_entries: list[str] = []
 
 		self._zram_enabled = False
-		self._disable_fstrim = False
+		self._enable_fstrim = True
 
 	def __enter__(self) -> 'Installer':
 		return self
@@ -556,11 +556,9 @@ class Installer:
 		# TODO: enable espeakup
 		debug("enable_espeakup noop")
 
-	def enable_periodic_trim(self) -> None:
+	def set_periodic_trim(self, enable: bool) -> None:
 		info('Enabling periodic TRIM')
-		# fstrim is owned by util-linux
-		# TODO: enable services.fstrim.enable (true by default in NixOS)
-		debug('enable_periodic_trim noop')
+		self.set_additional_option("services.fstrim.enable", enable)
 
 	# TODO: move to NetworkManager config
 	def configure_nic(self, nic: Nic) -> None:
@@ -638,7 +636,7 @@ class Installer:
 
 		# https://github.com/archlinux/archinstall/issues/1837
 		if fs_type.fs_type_mount == 'btrfs':
-			self._disable_fstrim = True
+			self._enable_fstrim = False
 
 		# There is not yet an fsck tool for NTFS. If it's being used for the root filesystem, the hook should be removed.
 		if fs_type.fs_type_mount == 'ntfs3' and mountpoint == self.target:
@@ -697,8 +695,7 @@ class Installer:
 		# Periodic TRIM may improve the performance and longevity of SSDs whilst
 		# having no adverse effect on other devices. Most distributions enable
 		# periodic TRIM by default.
-		if not self._disable_fstrim:
-			self.enable_periodic_trim()
+		self.set_periodic_trim(self._enable_fstrim)
 
 		# TODO: Support locale and timezone
 		# os.remove(f'{self.target}/etc/localtime')
@@ -1099,7 +1096,7 @@ class Installer:
 		for package in packages:
 			self.add_additional_package(package)
 
-	def add_additional_option(self, key: str, value: Any) -> None:
+	def set_additional_option(self, key: str, value: Any) -> None:
 		error("add_additional_option not implemented yet")
 
 	def enable_sudo(self, user: User, group: bool = False) -> None:

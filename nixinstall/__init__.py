@@ -84,11 +84,11 @@ __all__ = [
 	'Pacman',
 	'SysInfo',
 	'Tui',
-	'nixos_config_handler',
 	'debug',
 	'disk_layouts',
 	'error',
 	'info',
 	'log',
+	'nixos_config_handler',
 	'warn',
 ]

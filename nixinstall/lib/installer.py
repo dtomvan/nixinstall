@@ -73,7 +73,7 @@ class Installer:
 			self._packages.append(kernel)
 
 		if accessibility_tools_in_use():
-			warning("TODO: __accessibility_packages__ probably through a nixos module instead")
+			warning('TODO: __accessibility_packages__ probably through a nixos module instead')
 			NixosConfig().install(__accessibility_packages__)
 
 		self.post_base_install: list[Callable] = []  # type: ignore[type-arg]
@@ -123,17 +123,6 @@ class Installer:
 		info('Syncing the system...')
 		SysCommand('sync')
 
-	def _verify_service_stop(self) -> None:
-		"""
-		Certain services might be running that affects the system during installation.
-		One such service is "reflector.service" which updates /etc/pacman.d/mirrorlist
-		We need to wait for it before we continue since we opted in to use a custom mirror/region.
-		"""
-
-		# TODO: We will most likely need to have something here for NixOS. I'll
-		# keep this funtion around for now.
-		debug('_verify_service_stop noop')
-
 	def _verify_boot_part(self) -> None:
 		"""
 		Check that mounted /boot device has at minimum size for installation
@@ -153,8 +142,8 @@ class Installer:
 				)
 
 	def sanity_check(self) -> None:
-		# self._verify_boot_part()
-		self._verify_service_stop()
+		warning("TODO: _some_ kind of sanity check might be desired")
+		pass
 
 	def mount_ordered_layout(self) -> None:
 		debug('Mounting ordered layout')
@@ -396,7 +385,7 @@ class Installer:
 		return True
 
 	def add_swapfile(self, size: str = '4G', enable_resume: bool = True, file: str = '/swapfile') -> None:
-		error("add_swapfile not implemented")
+		error('add_swapfile not implemented')
 
 		if file[:1] != '/':
 			file = f'/{file}'
@@ -408,7 +397,7 @@ class Installer:
 		SysCommand(f'mkswap {self.target}{file}')
 
 		if enable_resume:
-			error("resume from swap not implemented")
+			error('resume from swap not implemented')
 
 	def post_install_check(self, *args: str, **kwargs: str) -> list[str]:
 		return [step for step, flag in self._helper_flags.items() if flag is False]
@@ -543,7 +532,7 @@ class Installer:
 			self._enable_fstrim = False
 
 	def _prepare_encrypt(self, before: str = 'filesystems') -> None:
-		error("_prepare_encrypt not implemented")
+		error('_prepare_encrypt not implemented')
 
 	def minimal_installation(
 		self,
@@ -656,11 +645,11 @@ class Installer:
 		id_root: bool = True,
 		partuuid: bool = True,
 	) -> list[str]:
-		warning("TODO: most likely _get_kernel_params will not be used")
+		warning('TODO: most likely _get_kernel_params will not be used')
 
 		kernel_parameters = []
 
-		warning("TODO: get fileSystems and swapDevices")
+		warning('TODO: get fileSystems and swapDevices')
 
 		# Zswap should be disabled when using zram.
 		# https://github.com/archlinux/archinstall/issues/881
@@ -797,7 +786,7 @@ class Installer:
 		root: PartitionModification | LvmVolume,
 		efi_partition: PartitionModification | None,
 	) -> None:
-		warning("TODO: implement setting kernel versions")
+		warning('TODO: implement setting kernel versions')
 		warning("TODO: implement UKI's (if possible on NixOS without lanzaboote IDK)")
 
 	def add_bootloader(self, bootloader: Bootloader, uki_enabled: bool = False) -> None:
@@ -889,34 +878,6 @@ class Installer:
 		info(f'Setting x11 keyboard language to {language}')
 		error('Installer.set_x11_keyboard_language not yet implemented')
 		return False
-
-	def _service_started(self, service_name: str) -> str | None:
-		if os.path.splitext(service_name)[1] not in ('.service', '.target', '.timer'):
-			service_name += '.service'  # Just to be safe
-
-		last_execution_time = (
-			SysCommand(
-				f'systemctl show --property=ActiveEnterTimestamp --no-pager {service_name}',
-				environment_vars={'SYSTEMD_COLORS': '0'},
-			)
-			.decode()
-			.removeprefix('ActiveEnterTimestamp=')
-		)
-
-		if not last_execution_time:
-			return None
-
-		return last_execution_time
-
-	def _service_state(self, service_name: str) -> str:
-		if os.path.splitext(service_name)[1] not in ('.service', '.target', '.timer'):
-			service_name += '.service'  # Just to be safe
-
-		return SysCommand(
-			f'systemctl show --no-pager -p SubState --value {service_name}',
-			environment_vars={'SYSTEMD_COLORS': '0'},
-		).decode()
-
 
 def accessibility_tools_in_use() -> bool:
 	return os.system('systemctl is-active --quiet espeakup.service') == 0

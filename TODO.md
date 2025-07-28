@@ -36,3 +36,37 @@
 - `nixos-generate-config`
 - overwrite `/mnt/etc/nixos/configuration.nix`
 - `nixos-install`
+
+## Profile checklist
+Is it checked/implemented?
+
+- [ ] `desktops/awesome.py`
+- [ ] `desktops/bspwm.py`
+- [ ] `desktops/budgie.py`
+- [ ] `desktops/cinnamon.py`
+- [ ] `desktops/cosmic.py`
+- [ ] `desktops/cutefish.py`
+- [ ] `desktops/deepin.py`
+- [ ] `desktops/enlightenment.py`
+- [ ] `desktops/gnome.py`
+- [ ] `desktops/hyprland.py`
+- [ ] `desktops/i3.py`
+- [ ] `desktops/labwc.py`
+- [ ] `desktops/lxqt.py`
+- [ ] `desktops/mate.py`
+- [ ] `desktops/niri.py`
+- [ ] `desktops/plasma.py`
+- [ ] `desktops/qtile.py`
+- [ ] `desktops/river.py`
+- [ ] `desktops/sway.py`
+- [ ] `desktops/xfce4.py`
+- [ ] `desktops/xmonad.py`
+- [ ] `servers/cockpit.py`
+- [ ] `servers/docker.py`
+- [ ] `servers/httpd.py`
+- [ ] `servers/lighttpd.py`
+- [ ] `servers/mariadb.py`
+- [ ] `servers/nginx.py`
+- [ ] `servers/postgresql.py`
+- [ ] `servers/sshd.py`
+- [ ] `servers/tomcat.py`

@@ -4,6 +4,7 @@ import re
 import shutil
 import time
 from collections.abc import Callable
+from logging import warning
 from pathlib import Path
 from subprocess import CalledProcessError
 from types import TracebackType
@@ -28,7 +29,7 @@ from nixinstall.lib.models.device_model import (
 from nixinstall.lib.nix.config import NixosConfig
 from nixinstall.tui.curses_menu import Tui
 
-from .exceptions import DiskError, RequirementError, SysCallError
+from .exceptions import DiskError, SysCallError
 from .general import SysCommand, run
 from .hardware import SysInfo
 from .luks import Luks2
@@ -83,28 +84,6 @@ class Installer:
 
 		storage['installation_session'] = self
 
-		self._modules: list[str] = []
-		self._binaries: list[str] = []
-		self._files: list[str] = []
-
-		# systemd, sd-vconsole and sd-encrypt will be replaced by udev, keymap and encrypt
-		# if HSM is not used to encrypt the root volume. Check mkinitcpio() function for that override.
-		self._hooks: list[str] = [
-			'base',
-			'systemd',
-			'autodetect',
-			'microcode',
-			'modconf',
-			'kms',
-			'keyboard',
-			'sd-vconsole',
-			'block',
-			'filesystems',
-			'fsck',
-		]
-		self._kernel_params: list[str] = []
-		self._fstab_entries: list[str] = []
-
 		self._zram_enabled = False
 		self._enable_fstrim = True
 
@@ -147,14 +126,6 @@ class Installer:
 	def sync(self) -> None:
 		info('Syncing the system...')
 		SysCommand('sync')
-
-	def remove_mod(self, mod: str) -> None:
-		if mod in self._modules:
-			self._modules.remove(mod)
-
-	def append_mod(self, mod: str) -> None:
-		if mod not in self._modules:
-			self._modules.append(mod)
 
 	def _verify_service_stop(self) -> None:
 		"""
@@ -429,6 +400,8 @@ class Installer:
 		return True
 
 	def add_swapfile(self, size: str = '4G', enable_resume: bool = True, file: str = '/swapfile') -> None:
+		error("add_swapfile not implemented")
+
 		if file[:1] != '/':
 			file = f'/{file}'
 		if len(file.strip()) <= 0 or file == '/':
@@ -438,46 +411,11 @@ class Installer:
 		SysCommand(f'chmod 0600 {self.target}{file}')
 		SysCommand(f'mkswap {self.target}{file}')
 
-		self._fstab_entries.append(f'{file} none swap defaults 0 0')
-
 		if enable_resume:
-			resume_uuid = SysCommand(f'findmnt -no UUID -T {self.target}{file}').decode()
-			resume_offset = (
-				SysCommand(
-					f'filefrag -v {self.target}{file}',
-				)
-				.decode()
-				.split('0:', 1)[1]
-				.split(':', 1)[1]
-				.split('..', 1)[0]
-				.strip()
-			)
-
-			self._hooks.append('resume')
-			self._kernel_params.append(f'resume=UUID={resume_uuid}')
-			self._kernel_params.append(f'resume_offset={resume_offset}')
+			error("resume from swap not implemented")
 
 	def post_install_check(self, *args: str, **kwargs: str) -> list[str]:
 		return [step for step, flag in self._helper_flags.items() if flag is False]
-
-	def genfstab(self, flags: str = '-pU') -> None:
-		fstab_path = self.target / 'etc' / 'fstab'
-		info(f'Updating {fstab_path}')
-
-		try:
-			gen_fstab = SysCommand(f'genfstab {flags} {self.target}').output()
-		except SysCallError as err:
-			raise RequirementError(f'Could not generate fstab, strapping in packages most likely failed (disk out of space?)\n Error: {err}')
-
-		with open(fstab_path, 'ab') as fp:
-			fp.write(gen_fstab)
-
-		if not fstab_path.is_file():
-			raise RequirementError('Could not create fstab file')
-
-		with open(fstab_path, 'a') as fp:
-			for entry in self._fstab_entries:
-				fp.write(f'{entry}\n')
 
 	def set_hostname(self, hostname: str) -> None:
 		NixosConfig().set('networking.hostName', hostname)
@@ -590,33 +528,6 @@ class Installer:
 
 		return True
 
-	def mkinitcpio(self, flags: list[str]) -> bool:
-		with open(f'{self.target}/etc/mkinitcpio.conf', 'r+') as mkinit:
-			content = mkinit.read()
-			content = re.sub('\nMODULES=(.*)', f'\nMODULES=({" ".join(self._modules)})', content)
-			content = re.sub('\nBINARIES=(.*)', f'\nBINARIES=({" ".join(self._binaries)})', content)
-			content = re.sub('\nFILES=(.*)', f'\nFILES=({" ".join(self._files)})', content)
-
-			if not self._disk_encryption.hsm_device:
-				# For now, if we don't use HSM we revert to the old
-				# way of setting up encryption hooks for mkinitcpio.
-				# This is purely for stability reasons, we're going away from this.
-				# * systemd -> udev
-				# * sd-vconsole -> keymap
-				self._hooks = [hook.replace('systemd', 'udev').replace('sd-vconsole', 'keymap consolefont') for hook in self._hooks]
-
-			content = re.sub('\nHOOKS=(.*)', f'\nHOOKS=({" ".join(self._hooks)})', content)
-			mkinit.seek(0)
-			mkinit.write(content)
-
-		try:
-			SysCommand(f'arch-chroot {self.target} mkinitcpio {" ".join(flags)}', peek_output=True)
-			return True
-		except SysCallError as e:
-			if e.worker_log:
-				log(e.worker_log.decode())
-			return False
-
 	def _get_microcode(self) -> Path | None:
 		if not SysInfo.is_vm():
 			if vendor := SysInfo.cpu_vendor():
@@ -630,41 +541,22 @@ class Installer:
 	) -> None:
 		if (pkg := fs_type.installation_pkg) is not None:
 			self._packages.append(pkg)
-		if (module := fs_type.installation_module) is not None:
-			self._modules.append(module)
-		if (binary := fs_type.installation_binary) is not None:
-			self._binaries.append(binary)
 
 		# https://github.com/archlinux/archinstall/issues/1837
 		if fs_type.fs_type_mount == 'btrfs':
 			self._enable_fstrim = False
 
-		# There is not yet an fsck tool for NTFS. If it's being used for the root filesystem, the hook should be removed.
-		if fs_type.fs_type_mount == 'ntfs3' and mountpoint == self.target:
-			if 'fsck' in self._hooks:
-				self._hooks.remove('fsck')
-
 	def _prepare_encrypt(self, before: str = 'filesystems') -> None:
-		if self._disk_encryption.hsm_device:
-			# Required by mkinitcpio to add support for fido2-device options
-			self._packages.append('libfido2')
-
-			if 'sd-encrypt' not in self._hooks:
-				self._hooks.insert(self._hooks.index(before), 'sd-encrypt')
-		else:
-			if 'encrypt' not in self._hooks:
-				self._hooks.insert(self._hooks.index(before), 'encrypt')
+		error("_prepare_encrypt not implemented")
 
 	def minimal_installation(
 		self,
-		mkinitcpio: bool = True,
 		hostname: str | None = None,
 		locale_config: LocaleConfiguration | None = LocaleConfiguration.default(),
 	) -> None:
 		if self._disk_config.lvm_config:
 			lvm = 'lvm2'
 			self._packages.append(lvm)
-			self._hooks.insert(self._hooks.index('filesystems') - 1, lvm)
 
 			for vg in self._disk_config.lvm_config.vol_groups:
 				for vol in vg.volumes:
@@ -712,15 +604,7 @@ class Installer:
 		# TODO: Use python functions for this
 		SysCommand(f'arch-chroot {self.target} chmod 700 /root')
 
-		if mkinitcpio and not self.mkinitcpio(['-P']):
-			error('Error generating initramfs (continuing anyway)')
-
 		self._helper_flags['base'] = True
-
-		# Run registered post-install hooks
-		for function in self.post_base_install:
-			info(f'Running post-installation hook: {function}')
-			function(self)
 
 	def setup_btrfs_snapshot(
 		self,
@@ -853,6 +737,8 @@ class Installer:
 		id_root: bool = True,
 		partuuid: bool = True,
 	) -> list[str]:
+		warning("TODO: most likely _get_kernel_params will not be used")
+
 		kernel_parameters = []
 
 		if isinstance(root, LvmVolume):
@@ -874,7 +760,6 @@ class Installer:
 			kernel_parameters.append('rw')
 
 		kernel_parameters.append(f'rootfstype={root.safe_fs_type.fs_type_mount}')
-		kernel_parameters.extend(self._kernel_params)
 
 		debug(f'kernel parameters: {" ".join(kernel_parameters)}')
 
@@ -1008,50 +893,8 @@ class Installer:
 		root: PartitionModification | LvmVolume,
 		efi_partition: PartitionModification | None,
 	) -> None:
-		if not efi_partition or not efi_partition.mountpoint:
-			raise ValueError(f'Could not detect ESP at mountpoint {self.target}')
-
-		# Set up kernel command line
-		with open(self.target / 'etc/kernel/cmdline', 'w') as cmdline:
-			kernel_parameters = self._get_kernel_params(root)
-			cmdline.write(' '.join(kernel_parameters) + '\n')
-
-		diff_mountpoint = None
-
-		if efi_partition.mountpoint != Path('/efi'):
-			diff_mountpoint = str(efi_partition.mountpoint)
-
-		image_re = re.compile('(.+_image="/([^"]+).+\n)')
-		uki_re = re.compile('#((.+_uki=")/[^/]+(.+\n))')
-
-		# Modify .preset files
-		for kernel in self.kernels:
-			preset = self.target / 'etc/mkinitcpio.d' / (kernel + '.preset')
-			config = preset.read_text().splitlines(True)
-
-			for index, line in enumerate(config):
-				# Avoid storing redundant image file
-				if m := image_re.match(line):
-					image = self.target / m.group(2)
-					image.unlink(missing_ok=True)
-					config[index] = '#' + m.group(1)
-				elif m := uki_re.match(line):
-					if diff_mountpoint:
-						config[index] = m.group(2) + diff_mountpoint + m.group(3)
-					else:
-						config[index] = m.group(1)
-				elif line.startswith('#default_options='):
-					config[index] = line.removeprefix('#')
-
-			preset.write_text(''.join(config))
-
-		# Directory for the UKIs
-		uki_dir = self.target / efi_partition.relative_mountpoint / 'EFI/Linux'
-		uki_dir.mkdir(parents=True, exist_ok=True)
-
-		# Build the UKIs
-		if not self.mkinitcpio(['-P']):
-			error('Error generating initramfs (continuing anyway)')
+		warning("TODO: implement setting kernel versions")
+		warning("TODO: implement UKI's (if possible on NixOS without lanzaboote IDK)")
 
 	def add_bootloader(self, bootloader: Bootloader, uki_enabled: bool = False) -> None:
 		"""

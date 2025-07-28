@@ -1,4 +1,5 @@
 import os
+from logging import warning
 from pathlib import Path
 
 from nixinstall import SysInfo
@@ -55,7 +56,6 @@ def perform_installation(mountpoint: Path) -> None:
 		return
 
 	disk_config = config.disk_config
-	run_mkinitcpio = not config.uki
 	locale_config = config.locale_config
 	mountpoint = disk_config.mountpoint if disk_config.mountpoint else mountpoint
 
@@ -76,7 +76,6 @@ def perform_installation(mountpoint: Path) -> None:
 				installation.generate_key_files()
 
 		installation.minimal_installation(
-			mkinitcpio=run_mkinitcpio,
 			hostname=nixos_config_handler.config.hostname,
 			locale_config=locale_config,
 		)
@@ -145,7 +144,7 @@ def perform_installation(mountpoint: Path) -> None:
 		if cc := config.custom_commands:
 			run_custom_user_commands(cc, installation)
 
-		installation.genfstab()
+		warning("TODO: implement setting filesystems, most likely a call to nixos-generate-config")
 
 		debug(f'Disk states after installing:\n{disk_layouts()}')
 

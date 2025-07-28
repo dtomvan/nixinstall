@@ -11,7 +11,6 @@ from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from .applications.application_menu import ApplicationMenu
 from .args import NixOSConfig
 from .authentication.authentication_menu import AuthenticationMenu
-from .configuration import save_config
 from .hardware import SysInfo
 from .interactions.general_conf import (
 	add_number_of_parallel_downloads,
@@ -30,7 +29,7 @@ from .models.locale import LocaleConfiguration
 from .models.network_configuration import NetworkConfiguration, NicType
 from .models.profile_model import ProfileConfiguration
 from .models.users import Password, User
-from .output import FormattedOutput
+from .output import FormattedOutput, error
 from .utils.util import get_password
 
 
@@ -173,7 +172,7 @@ class GlobalMenu(AbstractMenu[None]):
 			),
 			MenuItem(
 				text='Save configuration',
-				action=lambda x: self._safe_config(),
+				action=lambda x: error('save configuration not implemented yet'),
 				key=f'{CONFIG_KEY}_save',
 			),
 			MenuItem(
@@ -187,15 +186,6 @@ class GlobalMenu(AbstractMenu[None]):
 				key=f'{CONFIG_KEY}_abort',
 			),
 		]
-
-	def _safe_config(self) -> None:
-		# data: dict[str, Any] = {}
-		# for item in self._item_group.items:
-		# 	if item.key is not None:
-		# 		data[item.key] = item.value
-
-		self.sync_all_to_config()
-		save_config(self._nixos_config)
 
 	def _missing_configs(self) -> list[str]:
 		def check(s: str) -> bool:

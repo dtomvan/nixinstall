@@ -17,7 +17,7 @@ from nixinstall.lib.models.device_model import (
 	DiskLayoutType,
 	EncryptionType,
 )
-from nixinstall.lib.models.users import User
+from nixinstall.lib.nix.config import NixosConfig
 from nixinstall.lib.output import debug, error, info
 from nixinstall.lib.profile.profiles_handler import profile_handler
 from nixinstall.tui import Tui
@@ -64,6 +64,9 @@ def perform_installation(mountpoint: Path) -> None:
 		disk_config,
 		kernels=config.kernels,
 	) as installation:
+		osconfig = NixosConfig()
+		osconfig.begin()
+
 		# Mount all the drives to the desired mountpoint
 		if disk_config.config_type != DiskLayoutType.Pre_mount:
 			installation.mount_ordered_layout()
@@ -123,8 +126,7 @@ def perform_installation(mountpoint: Path) -> None:
 			installation.enable_espeakup()
 
 		if root_pw := config.root_enc_password:
-			root_user = User('root', root_pw, False)
-			installation.set_user_password(root_user)
+			osconfig.set('users.users.root.initialHashedPassword', root_pw)
 
 		if (profile_config := config.profile_config) and profile_config.profile:
 			profile_config.profile.post_install(installation)
@@ -170,8 +172,6 @@ def guided() -> None:
 		ask_user_questions()
 
 	config = ConfigurationOutput(nixos_config_handler.config)
-	config.write_debug()
-	config.save()
 
 	if nixos_config_handler.args.dry_run:
 		exit(0)

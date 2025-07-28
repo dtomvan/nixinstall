@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import urllib.error
 import urllib.parse
@@ -12,7 +11,6 @@ from urllib.request import Request, urlopen
 
 from pydantic.dataclasses import dataclass as p_dataclass
 
-from nixinstall.lib.crypt import decrypt
 from nixinstall.lib.models.application import ApplicationConfiguration
 from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.bootloader import Bootloader
@@ -21,9 +19,7 @@ from nixinstall.lib.models.locale import LocaleConfiguration
 from nixinstall.lib.models.network_configuration import NetworkConfiguration
 from nixinstall.lib.models.profile_model import ProfileConfiguration
 from nixinstall.lib.models.users import Password, User
-from nixinstall.lib.output import debug, error, logger, warn
-from nixinstall.lib.utils.util import get_password
-from nixinstall.tui.curses_menu import Tui
+from nixinstall.lib.output import error, logger, warn
 
 
 @p_dataclass
@@ -71,131 +67,11 @@ class NixOSConfig:
 	users: list[User] = field(default_factory=list)
 	root_enc_password: Password | None = None
 
-	def unsafe_json(self) -> dict[str, Any]:
-		config = {
-			'users': [user.json() for user in self.users],
-			'root_enc_password': self.root_enc_password.enc_password if self.root_enc_password else None,
-		}
-
-		if self.disk_config:
-			disk_encryption = self.disk_config.disk_encryption
-			if disk_encryption and disk_encryption.encryption_password:
-				config['encryption_password'] = disk_encryption.encryption_password.plaintext
-
-		return config
-
-	def safe_json(self) -> dict[str, Any]:
-		config: Any = {
-			'version': self.version,
-			'script': self.script,
-			'hostname': self.hostname,
-			'kernels': self.kernels,
-			'ntp': self.ntp,
-			'packages': self.packages,
-			'parallel_downloads': self.parallel_downloads,
-			'swap': self.swap,
-			'timezone': self.timezone,
-			'services': self.services,
-			'custom_commands': self.custom_commands,
-			'bootloader': self.bootloader.json(),
-			'app_config': self.app_config.json() if self.app_config else None,
-			'auth_config': self.auth_config.json() if self.auth_config else None,
-		}
-
-		if self.locale_config:
-			config['locale_config'] = self.locale_config.json()
-
-		if self.disk_config:
-			config['disk_config'] = self.disk_config.json()
-
-		if self.profile_config:
-			config['profile_config'] = self.profile_config.json()
-
-		if self.network_config:
-			config['network_config'] = self.network_config.json()
-
-		return config
-
-	@classmethod
-	def from_config(cls, args_config: dict[str, Any]) -> 'NixOSConfig':
-		nixos_config = NixOSConfig()
-
-		nixos_config.locale_config = LocaleConfiguration.parse_arg(args_config)
-
-		if script := args_config.get('script', None):
-			nixos_config.script = script
-
-		if disk_config := args_config.get('disk_config', {}):
-			enc_password = args_config.get('encryption_password', '')
-			password = Password(plaintext=enc_password) if enc_password else None
-			nixos_config.disk_config = DiskLayoutConfiguration.parse_arg(disk_config, password)
-
-		if profile_config := args_config.get('profile_config', None):
-			nixos_config.profile_config = ProfileConfiguration.parse_arg(profile_config)
-
-		if net_config := args_config.get('network_config', None):
-			nixos_config.network_config = NetworkConfiguration.parse_arg(net_config)
-
-		if users := args_config.get('users', None):
-			nixos_config.users = User.parse_arguments(users)
-
-		if bootloader_config := args_config.get('bootloader', None):
-			nixos_config.bootloader = Bootloader.from_arg(bootloader_config)
-
-		if args_config.get('uki') and not nixos_config.bootloader.has_uki_support():
-			nixos_config.uki = False
-
-		app_config_args = args_config.get('app_config', None)
-
-		if app_config_args is not None:
-			nixos_config.app_config = ApplicationConfiguration.parse_arg(app_config_args)
-
-		if auth_config_args := args_config.get('auth_config', None):
-			nixos_config.auth_config = AuthenticationConfiguration.parse_arg(auth_config_args)
-
-		if hostname := args_config.get('hostname', ''):
-			nixos_config.hostname = hostname
-
-		if kernels := args_config.get('kernels', []):
-			nixos_config.kernels = kernels
-
-		nixos_config.ntp = args_config.get('ntp', True)
-
-		if packages := args_config.get('packages', []):
-			nixos_config.packages = packages
-
-		if parallel_downloads := args_config.get('parallel_downloads', 0):
-			nixos_config.parallel_downloads = parallel_downloads
-
-		nixos_config.swap = args_config.get('swap', True)
-
-		if timezone := args_config.get('timezone', 'UTC'):
-			nixos_config.timezone = timezone
-
-		if services := args_config.get('services', []):
-			nixos_config.services = services
-
-		if enc_password := args_config.get('root_enc_password', None):
-			nixos_config.root_enc_password = Password(enc_password=enc_password)
-
-		if custom_commands := args_config.get('custom_commands', []):
-			nixos_config.custom_commands = custom_commands
-
-		return nixos_config
-
-
 class NixOSConfigHandler:
 	def __init__(self) -> None:
 		self._parser: ArgumentParser = self._define_arguments()
 		self._args: Arguments = self._parse_args()
-
-		config = self._parse_config()
-
-		try:
-			self._config = NixOSConfig.from_config(config)
-		except ValueError as err:
-			warn(str(err))
-			exit(1)
+		self._config = NixOSConfig()
 
 	@property
 	def config(self) -> NixOSConfig:
@@ -206,12 +82,7 @@ class NixOSConfigHandler:
 		return self._args
 
 	def get_script(self) -> str:
-		if script := self.args.script:
-			return script
-
-		if script := self.config.script:
-			return script
-
+		# TODO: this can probably get inlined
 		return 'guided'
 
 	def print_help(self) -> None:
@@ -343,76 +214,6 @@ class NixOSConfigHandler:
 				args.creds_decryption_key = os.environ.get('ARCHINSTALL_CREDS_DECRYPTION_KEY')
 
 		return args
-
-	def _parse_config(self) -> dict[str, Any]:
-		config: dict[str, Any] = {}
-		config_data: str | None = None
-		creds_data: str | None = None
-
-		if self._args.config is not None:
-			config_data = self._read_file(self._args.config)
-		elif self._args.config_url is not None:
-			config_data = self._fetch_from_url(self._args.config_url)
-
-		if config_data is not None:
-			config.update(json.loads(config_data))
-
-		if self._args.creds is not None:
-			creds_data = self._read_file(self._args.creds)
-		elif self._args.creds_url is not None:
-			creds_data = self._fetch_from_url(self._args.creds_url)
-
-		if creds_data is not None:
-			json_data = self._process_creds_data(creds_data)
-			if json_data is not None:
-				config.update(json_data)
-
-		config = self._cleanup_config(config)
-
-		return config
-
-	def _process_creds_data(self, creds_data: str) -> dict[str, Any] | None:
-		if creds_data.startswith('$'):  # encrypted data
-			if self._args.creds_decryption_key is not None:
-				try:
-					creds_data = decrypt(creds_data, self._args.creds_decryption_key)
-					return json.loads(creds_data)
-				except ValueError as err:
-					if 'Invalid password' in str(err):
-						error('Incorrect credentials file decryption password')
-						exit(1)
-					else:
-						debug(f'Error decrypting credentials file: {err}')
-						raise err from err
-			else:
-				incorrect_password = False
-
-				with Tui():
-					while True:
-						header = 'Incorrect password' if incorrect_password else None
-
-						decryption_pwd = get_password(
-							text='Credentials file decryption password',
-							header=header,
-							allow_skip=False,
-							skip_confirmation=True,
-						)
-
-						if not decryption_pwd:
-							return None
-
-						try:
-							creds_data = decrypt(creds_data, decryption_pwd.plaintext)
-							break
-						except ValueError as err:
-							if 'Invalid password' in str(err):
-								debug('Incorrect credentials file decryption password')
-								incorrect_password = True
-							else:
-								debug(f'Error decrypting credentials file: {err}')
-								raise err from err
-
-		return json.loads(creds_data)
 
 	def _fetch_from_url(self, url: str) -> str:
 		if urllib.parse.urlparse(url).scheme:

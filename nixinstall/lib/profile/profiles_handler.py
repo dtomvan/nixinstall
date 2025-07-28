@@ -6,25 +6,17 @@ import sys
 from collections import Counter
 from functools import cached_property
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 from types import ModuleType
-from typing import TYPE_CHECKING, NotRequired, TypedDict
+from typing import TYPE_CHECKING
 
 from ...default_profiles.profile import GreeterType, Profile
 from ..hardware import GfxDriver
 from ..models.profile_model import ProfileConfiguration
-from ..networking import fetch_data_from_url, list_interfaces
+from ..networking import list_interfaces
 from ..output import debug, error, info
 
 if TYPE_CHECKING:
 	from ..installer import Installer
-
-
-class ProfileSerialization(TypedDict):
-	main: NotRequired[str]
-	details: NotRequired[list[str]]
-	custom_settings: NotRequired[dict[str, dict[str, str | None]]]
-	path: NotRequired[str]
 
 
 class ProfileHandler:
@@ -35,98 +27,6 @@ class ProfileHandler:
 		# it is merely used to be able to export the path again when a user
 		# wants to save the configuration
 		self._url_path: str | None = None
-
-	def to_json(self, profile: Profile | None) -> ProfileSerialization:
-		"""
-		Serialize the selected profile setting to JSON
-		"""
-		data: ProfileSerialization = {}
-
-		if profile is not None:
-			data = {
-				'main': profile.name,
-				'details': [profile.name for profile in profile.current_selection],
-				'custom_settings': {profile.name: profile.custom_settings for profile in profile.current_selection},
-			}
-
-		if self._url_path is not None:
-			data['path'] = self._url_path
-
-		return data
-
-	def parse_profile_config(self, profile_config: ProfileSerialization) -> Profile | None:
-		"""
-		Deserialize JSON configuration for profile
-		"""
-		profile: Profile | None = None
-
-		# the order of these is important, we want to
-		# load all the default_profiles from url and custom
-		# so that we can then apply whatever was specified
-		# in the main/detail sections
-		if url_path := profile_config.get('path', None):
-			self._url_path = url_path
-			local_path = Path(url_path)
-
-			if local_path.is_file():
-				profiles = self._process_profile_file(local_path)
-				self.remove_custom_profiles(profiles)
-				self.add_custom_profiles(profiles)
-			else:
-				self._import_profile_from_url(url_path)
-
-		# if custom := profile_config.get('custom', None):
-		# 	from nixinstall.default_profiles.custom import CustomTypeProfile
-		# 	custom_types = []
-		#
-		# 	for entry in custom:
-		# 		custom_types.append(
-		# 			CustomTypeProfile(
-		# 				entry['name'],
-		# 				entry['enabled'],
-		# 				entry.get('packages', []),
-		# 				entry.get('services', [])
-		# 			)
-		# 		)
-		#
-		# 	self.remove_custom_profiles(custom_types)
-		# 	self.add_custom_profiles(custom_types)
-		#
-		# 	# this doesn't mean it's actual going to be set as a selection
-		# 	# but we are simply populating the custom profile with all
-		# 	# possible custom definitions
-		# 	if custom_profile := self.get_profile_by_name('Custom'):
-		# 		custom_profile.set_current_selection(custom_types)
-
-		if main := profile_config.get('main', None):
-			profile = self.get_profile_by_name(main) if main else None
-
-		if not profile:
-			return None
-
-		valid_sub_profiles: list[Profile] = []
-		invalid_sub_profiles: list[str] = []
-		details: list[str] = profile_config.get('details', [])
-
-		if details:
-			for detail in filter(None, details):
-				if sub_profile := self.get_profile_by_name(detail):
-					valid_sub_profiles.append(sub_profile)
-				else:
-					invalid_sub_profiles.append(detail)
-
-			if invalid_sub_profiles:
-				info('No profile definition found: {}'.format(', '.join(invalid_sub_profiles)))
-
-		custom_settings = profile_config.get('custom_settings', {})
-		profile.current_selection = valid_sub_profiles
-
-		for sub_profile in valid_sub_profiles:
-			sub_profile_settings = custom_settings.get(sub_profile.name, {})
-			if sub_profile_settings:
-				sub_profile.custom_settings = sub_profile_settings
-
-		return profile
 
 	@property
 	def profiles(self) -> list[Profile]:
@@ -176,62 +76,23 @@ class ProfileHandler:
 		return [t for t in tailored if t.name in self._local_mac_addresses]
 
 	def install_greeter(self, install_session: 'Installer', greeter: GreeterType) -> None:
-		packages = []
-		service = None
-
 		match greeter:
 			case GreeterType.LightdmSlick:
-				packages = ['lightdm', 'lightdm-slick-greeter']
-				service = ['lightdm']
+				error("GreeterType.LightdmSlick not implemented yet")
 			case GreeterType.Lightdm:
-				packages = ['lightdm', 'lightdm-gtk-greeter']
-				service = ['lightdm']
+				error("GreeterType.Lightdm not implemented yet")
 			case GreeterType.Sddm:
-				packages = ['sddm']
-				service = ['sddm']
+				error("GreeterType.Sddm not implemented yet")
 			case GreeterType.Gdm:
-				packages = ['gdm']
-				service = ['gdm']
+				error("GreeterType.Gdm not implemented yet")
 			case GreeterType.Ly:
-				packages = ['ly']
-				service = ['ly']
+				error("GreeterType.Ly not implemented yet")
 			case GreeterType.CosmicSession:
-				packages = ['cosmic-greeter']
-
-		if packages:
-			install_session.add_additional_packages(packages)
-		if service:
-			pass
-			# install_session.enable_service(service)
-
-		# slick-greeter requires a config change
-		if greeter == GreeterType.LightdmSlick:
-			path = install_session.target.joinpath('etc/lightdm/lightdm.conf')
-			with open(path) as file:
-				filedata = file.read()
-
-			filedata = filedata.replace('#greeter-session=example-gtk-gnome', 'greeter-session=lightdm-slick-greeter')
-
-			with open(path, 'w') as file:
-				file.write(filedata)
+				error("GreeterType.CosmicSession not implemented yet")
 
 	def install_gfx_driver(self, install_session: 'Installer', driver: GfxDriver) -> None:
 		debug(f'Installing GFX driver: {driver.value}')
-
-		if driver in [GfxDriver.NvidiaOpenKernel, GfxDriver.NvidiaProprietary]:
-			headers = [f'{kernel}-headers' for kernel in install_session.kernels]
-			install_session.add_additional_packages(headers)
-		elif driver in [GfxDriver.AllOpenSource, GfxDriver.AmdOpenSource]:
-			# The order of these two are important if amdgpu is installed #808
-			install_session.remove_mod('amdgpu')
-			install_session.remove_mod('radeon')
-
-			install_session.append_mod('amdgpu')
-			install_session.append_mod('radeon')
-
-		driver_pkgs = driver.gfx_packages()
-		pkg_names = [p.value for p in driver_pkgs]
-		install_session.add_additional_packages(pkg_names)
+		error('install_gfx_driver not implemented yet')
 
 	def install_profile_config(self, install_session: 'Installer', profile_config: ProfileConfiguration) -> None:
 		profile = profile_config.profile
@@ -246,25 +107,6 @@ class ProfileHandler:
 
 		if profile_config.greeter:
 			self.install_greeter(install_session, profile_config.greeter)
-
-	def _import_profile_from_url(self, url: str) -> None:
-		"""
-		Import default_profiles from a url path
-		"""
-		try:
-			data = fetch_data_from_url(url)
-			b_data = bytes(data, 'utf-8')
-
-			with NamedTemporaryFile(delete=False, suffix='.py') as fp:
-				fp.write(b_data)
-				filepath = Path(fp.name)
-
-			profiles = self._process_profile_file(filepath)
-			self.remove_custom_profiles(profiles)
-			self.add_custom_profiles(profiles)
-		except ValueError:
-			err = f'Unable to fetch profile from specified url: {url}'
-			error(err)
 
 	def _load_profile_class(self, module: ModuleType) -> list[Profile]:
 		"""

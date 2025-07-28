@@ -67,6 +67,7 @@ class NixOSConfig:
 	users: list[User] = field(default_factory=list)
 	root_enc_password: Password | None = None
 
+
 class NixOSConfigHandler:
 	def __init__(self) -> None:
 		self._parser: ArgumentParser = self._define_arguments()

@@ -18,7 +18,7 @@ class AuthenticationMenu(AbstractSubMenu[AuthenticationConfiguration]):
 
 		if not self._depends_on_u2f():
 			# TODO: this message actually doesn't get displayed, how to do that?
-			Tui.print("No fido2 devices found, skipping")
+			Tui.print('No fido2 devices found, skipping')
 			return
 
 		menu_optioons = self._define_menu_options()

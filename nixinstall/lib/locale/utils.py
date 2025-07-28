@@ -8,16 +8,13 @@ from ..output import error
 
 @cache
 def list_keyboard_languages() -> list[str]:
-	kbd = nix_build("kbd")
+	kbd = nix_build('kbd')
 	keymap_directory = f'{kbd}/share/keymaps'
 
 	return (
 		SysCommand(
 			'localectl --no-pager list-keymaps',
-			environment_vars={
-				'SYSTEMD_COLORS': '0',
-				'SYSTEMD_KEYMAP_DIRECTORIES': keymap_directory
-			},
+			environment_vars={'SYSTEMD_COLORS': '0', 'SYSTEMD_KEYMAP_DIRECTORIES': keymap_directory},
 		)
 		.decode()
 		.splitlines()
@@ -27,16 +24,13 @@ def list_keyboard_languages() -> list[str]:
 @cache
 def list_locales() -> list[str]:
 	# FIXME: see https://github.com/NixOS/nixpkgs/issues/267101#issuecomment-2284844496
-	glibc_locales = nix_build("glibcLocales")
+	glibc_locales = nix_build('glibcLocales')
 	locale_archive = f'{glibc_locales}/lib/locale/locale-archive'
 
 	return (
 		SysCommand(
 			'localectl --no-pager list-locales',
-			environment_vars={
-				'SYSTEMD_COLORS': '0',
-				'LOCALE_ARCHIVE': locale_archive
-			},
+			environment_vars={'SYSTEMD_COLORS': '0', 'LOCALE_ARCHIVE': locale_archive},
 		)
 		.decode()
 		.splitlines()

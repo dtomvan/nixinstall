@@ -146,7 +146,7 @@ def perform_installation(mountpoint: Path) -> None:
 		if cc := config.custom_commands:
 			run_custom_user_commands(cc, installation)
 
-		warning("TODO: implement setting filesystems, most likely a call to nixos-generate-config")
+		warning('TODO: implement setting filesystems, most likely a call to nixos-generate-config')
 
 		debug(f'Disk states after installing:\n{disk_layouts()}')
 
@@ -161,7 +161,7 @@ def perform_installation(mountpoint: Path) -> None:
 					os.system('reboot')
 				case PostInstallationAction.CHROOT:
 					try:
-						error("post-installation action CHROOT not implemented yet")
+						error('post-installation action CHROOT not implemented yet')
 						# TODO: nixos-enter
 					except Exception:
 						pass

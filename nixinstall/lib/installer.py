@@ -142,7 +142,7 @@ class Installer:
 				)
 
 	def sanity_check(self) -> None:
-		warning("TODO: _some_ kind of sanity check might be desired")
+		warning('TODO: _some_ kind of sanity check might be desired')
 		pass
 
 	def mount_ordered_layout(self) -> None:
@@ -862,6 +862,7 @@ class Installer:
 		info(f'Setting x11 keyboard language to {language}')
 		error('Installer.set_x11_keyboard_language not yet implemented')
 		return False
+
 
 def accessibility_tools_in_use() -> bool:
 	return os.system('systemctl is-active --quiet espeakup.service') == 0

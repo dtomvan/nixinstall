@@ -20,11 +20,11 @@ class PostInstallationAction(Enum):
 
 
 def ask_ntp(preset: bool = True) -> bool:
-	header = '''\
+	header = """\
 	Would you like to use automatic time synchronization (NTP) with the default time servers?
 	Hardware time and other post-configuration steps might be required in order for NTP to work.
 	For more information, please check the Arch wiki
-	'''
+	"""
 
 	preset_val = MenuItem.yes() if preset else MenuItem.no()
 	group = MenuItemGroup.yes_no()
@@ -114,7 +114,7 @@ def ask_additional_packages_to_install(
 		'Install packages',
 		alignment=Alignment.CENTER,
 		allow_skip=True,
-		default_text=(" ".join(preset)),
+		default_text=(' '.join(preset)),
 	).input()
 
 	match result.type_:
@@ -123,7 +123,7 @@ def ask_additional_packages_to_install(
 		case ResultType.Reset:
 			return []
 		case ResultType.Selection:
-			return [pkg for pkg in result.text().split(" ")]
+			return [pkg for pkg in result.text().split(' ')]
 
 
 def add_number_of_parallel_downloads(preset: int | None = None) -> int | None:

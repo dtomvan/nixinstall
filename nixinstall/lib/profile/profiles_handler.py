@@ -59,17 +59,17 @@ class ProfileHandler:
 	def install_greeter(self, install_session: 'Installer', greeter: GreeterType) -> None:
 		match greeter:
 			case GreeterType.LightdmSlick:
-				error("GreeterType.LightdmSlick not implemented yet")
+				error('GreeterType.LightdmSlick not implemented yet')
 			case GreeterType.Lightdm:
-				error("GreeterType.Lightdm not implemented yet")
+				error('GreeterType.Lightdm not implemented yet')
 			case GreeterType.Sddm:
-				error("GreeterType.Sddm not implemented yet")
+				error('GreeterType.Sddm not implemented yet')
 			case GreeterType.Gdm:
-				error("GreeterType.Gdm not implemented yet")
+				error('GreeterType.Gdm not implemented yet')
 			case GreeterType.Ly:
-				error("GreeterType.Ly not implemented yet")
+				error('GreeterType.Ly not implemented yet')
 			case GreeterType.CosmicSession:
-				error("GreeterType.CosmicSession not implemented yet")
+				error('GreeterType.CosmicSession not implemented yet')
 
 	def install_gfx_driver(self, install_session: 'Installer', driver: GfxDriver) -> None:
 		debug(f'Installing GFX driver: {driver.value}')

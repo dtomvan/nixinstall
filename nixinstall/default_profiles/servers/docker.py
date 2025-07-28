@@ -23,4 +23,4 @@ class DockerProfile(Profile):
 		from nixinstall.lib.args import nixos_config_handler
 
 		for user in nixos_config_handler.config.users:
-			install_session.set_additional_option(f'users.users."{user.username}".extraGroups', ["docker"])
+			install_session.set_additional_option(f'users.users."{user.username}".extraGroups', ['docker'])

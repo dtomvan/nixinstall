@@ -819,6 +819,7 @@ class FilesystemType(Enum):
 			case _:
 				return None
 
+
 class ModificationStatus(Enum):
 	Exist = 'existing'
 	Modify = 'modify'

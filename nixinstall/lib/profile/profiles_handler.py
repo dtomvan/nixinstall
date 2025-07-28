@@ -40,22 +40,6 @@ class ProfileHandler:
 	def _local_mac_addresses(self) -> list[str]:
 		return list(list_interfaces())
 
-	def add_custom_profiles(self, profiles: Profile | list[Profile]) -> None:
-		if not isinstance(profiles, list):
-			profiles = [profiles]
-
-		for profile in profiles:
-			self.profiles.append(profile)
-
-		self._verify_unique_profile_names(self.profiles)
-
-	def remove_custom_profiles(self, profiles: Profile | list[Profile]) -> None:
-		if not isinstance(profiles, list):
-			profiles = [profiles]
-
-		remove_names = [p.name for p in profiles]
-		self._profiles = [p for p in self.profiles if p.name not in remove_names]
-
 	def get_profile_by_name(self, name: str) -> Profile | None:
 		return next(filter(lambda x: x.name == name, self.profiles), None)  # type: ignore[arg-type, union-attr]
 
@@ -67,9 +51,6 @@ class ProfileHandler:
 
 	def get_desktop_profiles(self) -> list[Profile]:
 		return [p for p in self.profiles if p.is_desktop_type_profile()]
-
-	def get_custom_profiles(self) -> list[Profile]:
-		return [p for p in self.profiles if p.is_custom_type_profile()]
 
 	def get_mac_addr_profiles(self) -> list[Profile]:
 		tailored = [p for p in self.profiles if p.is_tailored()]

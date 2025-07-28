@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from enum import Enum, auto
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
 	from ..lib.installer import Installer
@@ -14,12 +14,10 @@ class ProfileType(Enum):
 	Desktop = 'Desktop'
 	Xorg = 'Xorg'
 	Minimal = 'Minimal'
-	Custom = 'Custom'
 	# detailed selection default_profiles
 	ServerType = 'ServerType'
 	WindowMgr = 'Window Manager'
 	DesktopEnv = 'Desktop Environment'
-	CustomType = 'CustomType'
 	# special things
 	Tailored = 'Tailored'
 	Application = 'Application'
@@ -67,9 +65,6 @@ class Profile:
 
 		self.current_selection = current_selection
 		self._packages = packages
-
-		# Only used for custom default_profiles
-		self.custom_enabled = False
 		self._nixos_options = nixos_options
 
 	@property
@@ -145,7 +140,7 @@ class Profile:
 		self.current_selection = []
 
 	def is_top_level_profile(self) -> bool:
-		top_levels = [ProfileType.Desktop, ProfileType.Server, ProfileType.Xorg, ProfileType.Minimal, ProfileType.Custom]
+		top_levels = [ProfileType.Desktop, ProfileType.Server, ProfileType.Xorg, ProfileType.Minimal]
 		return self.profile_type in top_levels
 
 	def is_desktop_profile(self) -> bool:
@@ -162,9 +157,6 @@ class Profile:
 
 	def is_tailored(self) -> bool:
 		return self.profile_type == ProfileType.Tailored
-
-	def is_custom_type_profile(self) -> bool:
-		return self.profile_type == ProfileType.CustomType
 
 	def is_graphic_driver_supported(self) -> bool:
 		if not self.current_selection:

@@ -815,12 +815,12 @@ class Installer:
 			case Bootloader.Limine:
 				self._add_limine_bootloader(boot_partition, efi_partition, root, uki_enabled)
 
-	def add_additional_package(self, packages: str) -> None:
-		self._packages.append(packages)
+	def add_additional_package(self, package: str) -> None:
+		return self.add_additional_packages([package])
 
 	def add_additional_packages(self, packages: list[str]) -> None:
-		for package in packages:
-			self.add_additional_package(package)
+		# TODO: this is an alias at this point
+		NixosConfig().install(packages)
 
 	def set_additional_option(self, key: str, value: Any) -> None:
 		error('add_additional_option not implemented yet')

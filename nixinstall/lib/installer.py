@@ -25,6 +25,7 @@ from nixinstall.lib.models.device_model import (
 	SubvolumeModification,
 	Unit,
 )
+from nixinstall.lib.nix.config import NixosConfig
 from nixinstall.tui.curses_menu import Tui
 
 from .exceptions import DiskError, RequirementError, SysCallError
@@ -479,7 +480,7 @@ class Installer:
 				fp.write(f'{entry}\n')
 
 	def set_hostname(self, hostname: str) -> None:
-		(self.target / 'etc/hostname').write_text(hostname + '\n')
+		NixosConfig().set('networking.hostName', hostname)
 
 	def set_locale(self, locale_config: LocaleConfiguration) -> bool:
 		modifier = ''

@@ -836,22 +836,17 @@ class Installer:
 		info(f'Creating user {user.username}')
 
 		if user.sudo:
-			user.groups += "wheel"
+			user.groups += 'wheel'
 
-		NixosConfig().set(f'users.users.{user.username}', {
-			"extraGroups": user.groups,
-			"hashedPassword": user.password.enc_password,
-			"isNormalUser": True,
-			"createHome": True,
-		})
-
-	def chown(self, owner: str, path: str, options: list[str] = []) -> bool:
-		cleaned_path = path.replace("'", "\\'")
-		try:
-			SysCommand(f"arch-chroot {self.target} sh -c 'chown {' '.join(options)} {owner} {cleaned_path}'")
-			return True
-		except SysCallError:
-			return False
+		NixosConfig().set(
+			f'users.users.{user.username}',
+			{
+				'extraGroups': user.groups,
+				'hashedPassword': user.password.enc_password,
+				'isNormalUser': True,
+				'createHome': True,
+			},
+		)
 
 	def set_keyboard_language(self, language: str) -> bool:
 		info(f'Setting keyboard language to {language}')

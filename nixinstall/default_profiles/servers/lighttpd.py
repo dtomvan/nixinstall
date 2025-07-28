@@ -14,8 +14,3 @@ class LighttpdProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['lighttpd']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['lighttpd']

@@ -17,8 +17,3 @@ class MariadbProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['mariadb']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['mariadb']

@@ -38,13 +38,6 @@ class HyprlandProfile(XorgProfile):
 	def default_greeter_type(self) -> GreeterType:
 		return GreeterType.Sddm
 
-	@property
-	@override
-	def services(self) -> list[str]:
-		if pref := self.custom_settings.get('seat_access', None):
-			return [pref]
-		return []
-
 	def _ask_seat_access(self) -> None:
 		# need to activate seat service and add to seat group
 		header = 'Hyprland needs access to your seat (collection of hardware devices i.e. keyboard, mouse, etc)'

@@ -14,8 +14,3 @@ class SshdProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['openssh']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['sshd']

@@ -14,8 +14,3 @@ class CockpitProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['cockpit', 'udisks2', 'packagekit']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['cockpit.socket']

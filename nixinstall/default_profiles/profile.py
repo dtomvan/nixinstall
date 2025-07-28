@@ -50,7 +50,7 @@ class Profile:
 		profile_type: ProfileType,
 		current_selection: list[Profile] = [],
 		packages: list[str] = [],
-		services: list[str] = [],
+		nixos_options: dict[str, object] = {},
 		support_gfx_driver: bool = False,
 		support_greeter: bool = False,
 		advanced: bool = False,
@@ -67,10 +67,10 @@ class Profile:
 
 		self.current_selection = current_selection
 		self._packages = packages
-		self._services = services
 
 		# Only used for custom default_profiles
 		self.custom_enabled = False
+		self._nixos_options = nixos_options
 
 	@property
 	def packages(self) -> list[str]:
@@ -81,12 +81,12 @@ class Profile:
 		return self._packages
 
 	@property
-	def services(self) -> list[str]:
+	def nixos_options(self) -> dict[str, object]:
 		"""
-		Returns a list of services that should be enabled when
+		Returns a list of NixOS options that should be enabled when
 		this profile is among the chosen ones
 		"""
-		return self._services
+		return self._nixos_options
 
 	@property
 	def default_greeter_type(self) -> GreeterType | None:

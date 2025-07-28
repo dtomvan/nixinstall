@@ -14,8 +14,3 @@ class NginxProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['nginx']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['nginx']

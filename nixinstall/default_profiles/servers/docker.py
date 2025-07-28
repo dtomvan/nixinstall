@@ -18,11 +18,6 @@ class DockerProfile(Profile):
 	def packages(self) -> list[str]:
 		return ['docker']
 
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['docker']
-
 	@override
 	def post_install(self, install_session: 'Installer') -> None:
 		from nixinstall.lib.args import nixos_config_handler

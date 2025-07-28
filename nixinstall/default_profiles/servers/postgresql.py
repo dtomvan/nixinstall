@@ -17,8 +17,3 @@ class PostgresqlProfile(Profile):
 	@override
 	def packages(self) -> list[str]:
 		return ['postgresql']
-
-	@property
-	@override
-	def services(self) -> list[str]:
-		return ['postgresql']

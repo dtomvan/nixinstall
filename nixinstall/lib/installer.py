@@ -454,21 +454,10 @@ class Installer:
 		(self.target / 'etc/locale.conf').write_text(f'LANG={lang_value}\n')
 		return True
 
-	def set_timezone(self, zone: str) -> bool:
-		if not zone:
-			return True
-		if not len(zone):
-			return True  # Redundant
+	def set_timezone(self, zone: str) -> None:
+		warn('TODO: check if zone exists')
 
-		if (Path('/usr') / 'share' / 'zoneinfo' / zone).exists():
-			(Path(self.target) / 'etc' / 'localtime').unlink(missing_ok=True)
-			SysCommand(f'arch-chroot {self.target} ln -s /usr/share/zoneinfo/{zone} /etc/localtime')
-			return True
-
-		else:
-			warn(f'Time zone {zone} does not exist, continuing with system default')
-
-		return False
+		NixosConfig().set('time.timeZone', zone)
 
 	def activate_time_synchronization(self) -> None:
 		info('Activating systemd-timesyncd for time synchronization using NixOS and ntp.org NTP servers')

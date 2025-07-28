@@ -554,11 +554,11 @@ class Installer:
 	def enable_espeakup(self) -> None:
 		info('Enabling espeakup.service for speech synthesis (accessibility)')
 		# TODO: enable espeakup
-		debug("enable_espeakup noop")
+		debug('enable_espeakup noop')
 
 	def set_periodic_trim(self, enable: bool) -> None:
 		info('Enabling periodic TRIM')
-		self.set_additional_option("services.fstrim.enable", enable)
+		self.set_additional_option('services.fstrim.enable', enable)
 
 	# TODO: move to NetworkManager config
 	def configure_nic(self, nic: Nic) -> None:
@@ -897,7 +897,7 @@ class Installer:
 		debug('Installing systemd bootloader')
 
 		# TODO: implement systemd-bootd
-		error("systemd bootloader not implemented yet")
+		error('systemd bootloader not implemented yet')
 
 		# if not SysInfo.has_uefi():
 		# 	raise HardwareIncompatibilityError
@@ -1097,7 +1097,7 @@ class Installer:
 			self.add_additional_package(package)
 
 	def set_additional_option(self, key: str, value: Any) -> None:
-		error("add_additional_option not implemented yet")
+		error('add_additional_option not implemented yet')
 
 	def enable_sudo(self, user: User, group: bool = False) -> None:
 		info(f'Enabling sudo permissions for {user.username}')

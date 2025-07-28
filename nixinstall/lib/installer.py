@@ -6,7 +6,6 @@ import time
 from collections.abc import Callable
 from logging import warning
 from pathlib import Path
-from subprocess import CalledProcessError
 from types import TracebackType
 from typing import Any
 
@@ -30,7 +29,7 @@ from nixinstall.lib.nix.config import NixosConfig
 from nixinstall.tui.curses_menu import Tui
 
 from .exceptions import DiskError, SysCallError
-from .general import SysCommand, run
+from .general import SysCommand
 from .hardware import SysInfo
 from .luks import Luks2
 from .models.bootloader import Bootloader
@@ -848,36 +847,6 @@ class Installer:
 	def set_additional_option(self, key: str, value: Any) -> None:
 		error('add_additional_option not implemented yet')
 
-	def enable_sudo(self, user: User, group: bool = False) -> None:
-		info(f'Enabling sudo permissions for {user.username}')
-
-		sudoers_dir = self.target / 'etc/sudoers.d'
-
-		# Creates directory if not exists
-		if not sudoers_dir.exists():
-			sudoers_dir.mkdir(parents=True)
-			# Guarantees sudoer confs directory recommended perms
-			sudoers_dir.chmod(0o440)
-			# Appends a reference to the sudoers file, because if we are here sudoers.d did not exist yet
-			with open(self.target / 'etc/sudoers', 'a') as sudoers:
-				sudoers.write('@includedir /etc/sudoers.d\n')
-
-		# We count how many files are there already so we know which number to prefix the file with
-		num_of_rules_already = len(os.listdir(sudoers_dir))
-		file_num_str = f'{num_of_rules_already:02d}'  # We want 00_user1, 01_user2, etc
-
-		# Guarantees that username str does not contain invalid characters for a linux file name:
-		# \ / : * ? " < > |
-		safe_username_file_name = re.sub(r'(\\|\/|:|\*|\?|"|<|>|\|)', '', user.username)
-
-		rule_file = sudoers_dir / f'{file_num_str}_{safe_username_file_name}'
-
-		with rule_file.open('a') as sudoers:
-			sudoers.write(f'{"%" if group else ""}{user.username} ALL=(ALL) ALL\n')
-
-		# Guarantees sudoer conf file recommended perms
-		rule_file.chmod(0o440)
-
 	def create_users(self, users: User | list[User]) -> None:
 		if not isinstance(users, list):
 			users = [users]
@@ -888,53 +857,15 @@ class Installer:
 	def _create_user(self, user: User) -> None:
 		info(f'Creating user {user.username}')
 
-		cmd = f'arch-chroot {self.target} useradd -m'
-
 		if user.sudo:
-			cmd += ' -G wheel'
+			user.groups += "wheel"
 
-		cmd += f' {user.username}'
-
-		try:
-			SysCommand(cmd)
-		except SysCallError as err:
-			raise SystemError(f'Could not create user inside installation: {err}')
-
-		self.set_user_password(user)
-
-		for group in user.groups:
-			SysCommand(f'arch-chroot {self.target} gpasswd -a {user.username} {group}')
-
-		if user.sudo:
-			self.enable_sudo(user)
-
-	def set_user_password(self, user: User) -> bool:
-		info(f'Setting password for {user.username}')
-
-		enc_password = user.password.enc_password
-
-		if not enc_password:
-			debug('User password is empty')
-			return False
-
-		input_data = f'{user.username}:{enc_password}'.encode()
-		cmd = ['arch-chroot', str(self.target), 'chpasswd', '--encrypted']
-
-		try:
-			run(cmd, input_data=input_data)
-			return True
-		except CalledProcessError as err:
-			debug(f'Error setting user password: {err}')
-			return False
-
-	def user_set_shell(self, user: str, shell: str) -> bool:
-		info(f'Setting shell for {user} to {shell}')
-
-		try:
-			SysCommand(f'arch-chroot {self.target} sh -c "chsh -s {shell} {user}"')
-			return True
-		except SysCallError:
-			return False
+		NixosConfig().set(f'users.users.{user.username}', {
+			"extraGroups": user.groups,
+			"hashedPassword": user.password.enc_password,
+			"isNormalUser": True,
+			"createHome": True,
+		})
 
 	def chown(self, owner: str, path: str, options: list[str] = []) -> bool:
 		cleaned_path = path.replace("'", "\\'")

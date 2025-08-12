@@ -29,11 +29,6 @@ class CpuVendor(Enum):
 			case _:
 				return False
 
-	def get_ucode(self) -> Path | None:
-		if self._has_microcode():
-			return Path(self.value + '-ucode.img')
-		return None
-
 
 class GfxPackage(Enum):
 	Dkms = 'dkms'

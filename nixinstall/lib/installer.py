@@ -30,7 +30,6 @@ from nixinstall.tui.curses_menu import Tui
 
 from .exceptions import DiskError, SysCallError
 from .general import SysCommand
-from .hardware import SysInfo
 from .luks import Luks2
 from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
@@ -502,12 +501,6 @@ class Installer:
 
 		return True
 
-	def _get_microcode(self) -> Path | None:
-		if not SysInfo.is_vm():
-			if vendor := SysInfo.cpu_vendor():
-				return vendor.get_ucode()
-		return None
-
 	def _prepare_fs_type(
 		self,
 		fs_type: FilesystemType,
@@ -551,11 +544,7 @@ class Installer:
 					if part in self._disk_encryption.partitions:
 						self._prepare_encrypt()
 
-		if ucode := self._get_microcode():
-			(self.target / 'boot' / ucode).unlink(missing_ok=True)
-			self._packages.append(ucode.stem)
-		else:
-			debug('nixinstall will not install any ucode.')
+		# TODO: set nixos option in config for ucode (AMD/Intel)
 
 		self._helper_flags['base-strapped'] = True
 

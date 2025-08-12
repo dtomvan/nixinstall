@@ -1,6 +1,5 @@
 """NixOS installer - guided only, fork of archinstall"""
 
-import importlib
 import os
 import sys
 import traceback

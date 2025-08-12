@@ -12,7 +12,6 @@ from urllib.request import Request, urlopen
 from pydantic.dataclasses import dataclass as p_dataclass
 
 from nixinstall.lib.models.application import ApplicationConfiguration
-from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.bootloader import Bootloader
 from nixinstall.lib.models.device_model import DiskLayoutConfiguration
 from nixinstall.lib.models.locale import LocaleConfiguration
@@ -52,7 +51,6 @@ class NixinstallConfig:
 	bootloader: Bootloader = field(default=Bootloader.get_default())
 	uki: bool = False
 	app_config: ApplicationConfiguration | None = None
-	auth_config: AuthenticationConfiguration | None = None
 	hostname: str = 'nixos'
 	kernels: list[str] = field(default_factory=lambda: ['linux'])
 	ntp: bool = True

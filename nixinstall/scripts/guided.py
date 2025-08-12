@@ -5,7 +5,6 @@ from pathlib import Path
 from nixinstall import SysInfo
 from nixinstall.lib.applications.application_handler import application_handler
 from nixinstall.lib.args import nixos_config_handler
-from nixinstall.lib.authentication.authentication_handler import auth_handler
 from nixinstall.lib.configuration import ConfigurationOutput
 from nixinstall.lib.disk.filesystem import FilesystemHandler
 from nixinstall.lib.disk.utils import disk_layouts
@@ -103,9 +102,6 @@ def perform_installation(mountpoint: Path) -> None:
 
 		if users := config.users:
 			installation.create_users(users)
-
-		if config.auth_config and config.users:
-			auth_handler.setup_auth(installation, config.auth_config, config.users, config.hostname)
 
 		if config.packages and config.packages[0] != '':
 			installation.add_additional_packages(config.packages)

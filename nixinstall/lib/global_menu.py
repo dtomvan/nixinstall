@@ -4,13 +4,11 @@ from typing import override
 
 from nixinstall.lib.disk.disk_menu import DiskLayoutConfigurationMenu
 from nixinstall.lib.models.application import ApplicationConfiguration
-from nixinstall.lib.models.authentication import AuthenticationConfiguration
 from nixinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayoutType, EncryptionType, FilesystemType, PartitionModification
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 
 from .applications.application_menu import ApplicationMenu
 from .args import NixinstallConfig
-from .authentication.authentication_menu import AuthenticationMenu
 from .hardware import SysInfo
 from .interactions.general_conf import (
 	add_number_of_parallel_downloads,
@@ -97,13 +95,6 @@ class GlobalMenu(AbstractMenu[None]):
 				action=self._set_root_password,
 				preview_action=self._prev_root_pwd,
 				key='root_enc_password',
-			),
-			MenuItem(
-				text='Authentication',
-				action=self._select_authentication,
-				value=[],
-				preview_action=self._prev_authentication,
-				key='auth_config',
 			),
 			MenuItem(
 				text='User account',
@@ -229,10 +220,6 @@ class GlobalMenu(AbstractMenu[None]):
 		app_config = ApplicationMenu(preset).run()
 		return app_config
 
-	def _select_authentication(self, preset: AuthenticationConfiguration | None) -> AuthenticationConfiguration | None:
-		auth_config = AuthenticationMenu(preset).run()
-		return auth_config
-
 	def _update_lang_text(self) -> None:
 		"""
 		The options for the global menu are generated with a static text;
@@ -270,23 +257,6 @@ class GlobalMenu(AbstractMenu[None]):
 		if item.value:
 			output = '\n'.join(sorted(item.value))
 			return output
-		return None
-
-	def _prev_authentication(self, item: MenuItem) -> str | None:
-		if item.value:
-			auth_config: AuthenticationConfiguration = item.value
-			output = ''
-
-			if auth_config.u2f_config:
-				u2f_config = auth_config.u2f_config
-				login_method = u2f_config.u2f_login_method.display_value()
-				output = 'U2F login method: ' + login_method
-
-				output += '\n'
-				output += 'Passwordless sudo: ' + ('Enabled' if u2f_config.passwordless_sudo else 'Disabled')
-
-			return output
-
 		return None
 
 	def _prev_applications(self, item: MenuItem) -> str | None:

@@ -42,7 +42,7 @@ class Arguments:
 
 
 @dataclass
-class NixOSConfig:
+class NixinstallConfig:
 	version: str | None = None
 	script: str | None = None
 	locale_config: LocaleConfiguration | None = None
@@ -72,19 +72,15 @@ class NixOSConfigHandler:
 	def __init__(self) -> None:
 		self._parser: ArgumentParser = self._define_arguments()
 		self._args: Arguments = self._parse_args()
-		self._config = NixOSConfig()
+		self._config = NixinstallConfig()
 
 	@property
-	def config(self) -> NixOSConfig:
+	def config(self) -> NixinstallConfig:
 		return self._config
 
 	@property
 	def args(self) -> Arguments:
 		return self._args
-
-	def get_script(self) -> str:
-		# TODO: this can probably get inlined
-		return 'guided'
 
 	def print_help(self) -> None:
 		self._parser.print_help()

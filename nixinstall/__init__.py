@@ -7,6 +7,7 @@ import traceback
 
 from nixinstall.lib.args import nixos_config_handler
 from nixinstall.lib.disk.utils import disk_layouts
+from nixinstall.scripts.guided import guided
 
 from .lib.hardware import SysInfo
 from .lib.output import FormattedOutput, debug, error, info, log, warn
@@ -41,12 +42,7 @@ def main() -> int:
 
 	_log_sys_info()
 
-	script = nixos_config_handler.get_script()
-
-	mod_name = f'nixinstall.scripts.{script}'
-	# by loading the module we'll automatically run the script
-	importlib.import_module(mod_name)
-
+	guided()
 	return 0
 
 

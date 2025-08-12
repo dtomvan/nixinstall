@@ -5,12 +5,12 @@ from nixinstall.tui.curses_menu import SelectMenu, Tui
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 from nixinstall.tui.types import Alignment, FrameProperties, Orientation, PreviewStyle
 
-from .args import NixOSConfig
+from .args import NixinstallConfig
 from .output import logger, warn
 
 
 class ConfigurationOutput:
-	def __init__(self, config: NixOSConfig):
+	def __init__(self, config: NixinstallConfig):
 		"""
 		Configuration output handler to parse the existing
 		configuration data structure and prepare for output on the

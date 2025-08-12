@@ -192,5 +192,3 @@ def guided() -> None:
 
 	perform_installation(nixos_config_handler.args.mountpoint)
 
-
-guided()

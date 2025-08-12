@@ -9,7 +9,7 @@ from nixinstall.lib.models.device_model import DiskLayoutConfiguration, DiskLayo
 from nixinstall.tui.menu_item import MenuItem, MenuItemGroup
 
 from .applications.application_menu import ApplicationMenu
-from .args import NixOSConfig
+from .args import NixinstallConfig
 from .authentication.authentication_menu import AuthenticationMenu
 from .hardware import SysInfo
 from .interactions.general_conf import (
@@ -34,12 +34,12 @@ from .utils.util import get_password
 
 
 class GlobalMenu(AbstractMenu[None]):
-	def __init__(self, nixos_config: NixOSConfig) -> None:
+	def __init__(self, nixos_config: NixinstallConfig) -> None:
 		self._nixos_config = nixos_config
-		menu_optioons = self._get_menu_options()
+		menu_options = self._get_menu_options()
 
 		self._item_group = MenuItemGroup(
-			menu_optioons,
+			menu_options,
 			sort_items=False,
 			checkmarks=True,
 		)

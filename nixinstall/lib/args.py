@@ -211,8 +211,8 @@ class NixOSConfigHandler:
 			warn(f'Warning: --debug mode will write certain credentials to {logger.path}!')
 
 		if args.creds_decryption_key is None:
-			if os.environ.get('ARCHINSTALL_CREDS_DECRYPTION_KEY'):
-				args.creds_decryption_key = os.environ.get('ARCHINSTALL_CREDS_DECRYPTION_KEY')
+			if os.environ.get('NIXINSTALL_CREDS_DECRYPTION_KEY'):
+				args.creds_decryption_key = os.environ.get('NIXINSTALL_CREDS_DECRYPTION_KEY')
 
 		return args
 
